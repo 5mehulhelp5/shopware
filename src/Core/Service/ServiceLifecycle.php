@@ -37,7 +37,8 @@ class ServiceLifecycle
         private readonly LoggerInterface $logger,
         private readonly ManifestFactory $manifestFactory,
         private readonly ServiceSourceResolver $sourceResolver,
-        private readonly AppStateService $appStateService
+        private readonly AppStateService $appStateService,
+        private readonly ServicePermissions $servicePermissions
     ) {
     }
 
@@ -70,7 +71,10 @@ class ServiceLifecycle
         try {
             $this->appLifecycle->install(
                 $manifest,
-                new AppInstallParameters(activate: $serviceEntry->activateOnInstall),
+                new AppInstallParameters(
+                    activate: $serviceEntry->activateOnInstall,
+                    acceptPermissions: $this->servicePermissions->canAcceptPermissions()
+                ),
                 Context::createDefaultContext()
             );
 
@@ -120,7 +124,7 @@ class ServiceLifecycle
         try {
             $this->appLifecycle->update(
                 $manifest,
-                new AppUpdateParameters(),
+                new AppUpdateParameters(acceptPermissions: $this->servicePermissions->canAcceptPermissions()),
                 [
                     'id' => $app->getId(),
                     'roleId' => $app->getAclRoleId(),
