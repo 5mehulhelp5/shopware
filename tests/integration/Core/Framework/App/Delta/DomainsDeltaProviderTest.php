@@ -64,7 +64,7 @@ class DomainsDeltaProviderTest extends TestCase
         $context = Context::createDefaultContext();
         $manifest = $this->getTestManifest();
 
-        $this->getAppLifecycle()->install($manifest, false, $context);
+        $this->getAppLifecycle()->install($manifest, new AppInstallParameters(activate: false), $context);
 
         $criteria = (new Criteria())
             ->addFilter(new EqualsFilter('name', 'test'));

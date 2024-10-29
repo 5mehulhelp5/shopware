@@ -19,7 +19,7 @@ class PostAppDeletedEvent extends Event implements ShopwareEvent
         public readonly string $appName,
         public readonly string $sourceType,
         private readonly Context $context,
-        public readonly bool $keepUserData = false
+        public readonly bool $keepUsegstrData = false
     ) {
     }
 

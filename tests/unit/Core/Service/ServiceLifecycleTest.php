@@ -25,7 +25,7 @@ use Shopware\Core\Service\ServiceClient;
 use Shopware\Core\Service\ServiceClientFactory;
 use Shopware\Core\Service\ServiceException;
 use Shopware\Core\Service\ServiceLifecycle;
-use Shopware\Core\Service\ServicePermissions;
+use Shopware\Core\Service\ServicePrivileges;
 use Shopware\Core\Service\ServiceRegistryClient;
 use Shopware\Core\Service\ServiceRegistryEntry;
 use Shopware\Core\Service\ServiceSourceResolver;
@@ -56,7 +56,7 @@ class ServiceLifecycleTest extends TestCase
 
     private AppStateService&MockObject $appState;
 
-    private ServicePermissions&MockObject $servicePermissions;
+    private ServicePrivileges&MockObject $servicePermissions;
 
     private AppInfo $appInfo;
 
@@ -77,7 +77,7 @@ class ServiceLifecycleTest extends TestCase
         $this->serviceRegistryClient = $this->createMock(ServiceRegistryClient::class);
         $this->sourceResolver = $this->createMock(ServiceSourceResolver::class);
         $this->appState = $this->createMock(AppStateService::class);
-        $this->servicePermissions = $this->createMock(ServicePermissions::class);
+        $this->servicePermissions = $this->createMock(ServicePrivileges::class);
         $this->appRepo = new StaticEntityRepository([
             [], // empty search for app -> service migration
         ]);

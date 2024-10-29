@@ -38,7 +38,7 @@ class ServiceLifecycle
         private readonly ManifestFactory $manifestFactory,
         private readonly ServiceSourceResolver $sourceResolver,
         private readonly AppStateService $appStateService,
-        private readonly ServicePermissions $servicePermissions
+        private readonly ServicePrivileges $servicePermissions
     ) {
     }
 
