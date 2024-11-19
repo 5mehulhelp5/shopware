@@ -3,14 +3,19 @@
 namespace Shopware\Core\Checkout\Order\SalesChannel;
 
 use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Cart\CartException;
 use Shopware\Core\Checkout\Cart\SalesChannel\CartService;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\Exception\PaymentMethodNotAvailableException;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Checkout\Promotion\PromotionCollection;
+use Shopware\Core\Checkout\Promotion\PromotionEntity;
 use Shopware\Core\Content\Product\State;
+use Shopware\Core\Content\Rule\RuleEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Validation\BuildValidationEvent;
@@ -27,6 +32,11 @@ use Shopware\Core\System\StateMachine\Transition;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Shopware\Core\Framework\Rule\Container\Container;
+use Shopware\Core\Checkout\Cart\Rule\PaymentMethodRule;
+use Shopware\Core\Framework\Adapter\Database\ReplicaConnection;
+use Shopware\Core\Checkout\Order\Event\OrderCriteriaEvent;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\Filter;
 
 #[Package('checkout')]
 class OrderService
@@ -54,6 +64,8 @@ class OrderService
         private readonly CartService $cartService,
         private readonly EntityRepository $paymentMethodRepository,
         private readonly StateMachineRegistry $stateMachineRegistry,
+        private readonly EntityRepository $promotionRepository,
+        private readonly EntityRepository $orderRepository,
     ) {
     }
 
@@ -69,6 +81,32 @@ class OrderService
         $this->validateCart($cart, $context->getContext());
 
         return $this->cartService->order($cart, $context, $data->toRequestDataBag());
+    }
+
+    public function getOrdersByCriteria(Criteria $criteria, SalesChannelContext $context): EntitySearchResult
+    {
+        ReplicaConnection::ensurePrimary();
+
+        $criteria->addFilter(new EqualsFilter('order.salesChannelId', $context->getSalesChannel()->getId()));
+        $criteria->getAssociation('documents')
+            ->addFilter(new EqualsFilter('config.displayInCustomerAccount', 'true'))
+            ->addFilter(new EqualsFilter('sent', true));
+
+        $criteria->addAssociation('billingAddress');
+        $criteria->addAssociation('orderCustomer.customer');
+
+        $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn(Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
+            || \in_array('deepLinkCode', $filter->getFields(), true))) ?: null;
+
+        if ($context->getCustomer()) {
+            $criteria->addFilter(new EqualsFilter('order.orderCustomer.customerId', $context->getCustomer()->getId()));
+        } elseif ($deepLinkFilter === null) {
+            throw CartException::customerNotLoggedIn();
+        }
+
+        $this->eventDispatcher->dispatch(new OrderCriteriaEvent($criteria, $context));
+
+        return $this->orderRepository->search($criteria, $context->getContext());
     }
 
     /**
@@ -173,6 +211,85 @@ class OrderService
         }
 
         return false;
+    }
+
+    public function isPaymentChangeableByPromotions(OrderEntity $order, SalesChannelContext $context): bool
+    {
+        $promotions = $this->getActivePromotions($order, $context);
+
+        foreach ($promotions as $promotion) {
+            if (!$this->checkPromotion($promotion)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function getActivePromotions(OrderEntity $order, SalesChannelContext $context): PromotionCollection
+    {
+        $promotionIds = [];
+        foreach ($order->getLineItems() ?? [] as $lineItem) {
+            $payload = $lineItem->getPayload();
+            if (isset($payload['promotionId']) && \is_string($payload['promotionId'])) {
+                $promotionIds[] = $payload['promotionId'];
+            }
+        }
+
+        $promotions = new PromotionCollection();
+
+        if (!empty($promotionIds)) {
+            $criteria = new Criteria($promotionIds);
+            $criteria->addAssociation('cartRules');
+            $promotions = $this->promotionRepository->search($criteria, $context->getContext())->getEntities();
+        }
+
+        return $promotions;
+    }
+
+    private function checkRuleType(Container $rule): bool
+    {
+        foreach ($rule->getRules() as $nestedRule) {
+            if ($nestedRule instanceof Container && $this->checkRuleType($nestedRule) === false) {
+                return false;
+            }
+            if ($nestedRule instanceof PaymentMethodRule) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function checkPromotion(PromotionEntity $promotion): bool
+    {
+        if ($promotion->getCartRules() === null) {
+            return true;
+        }
+
+        foreach ($promotion->getCartRules() as $cartRule) {
+            if (!$this->checkCartRule($cartRule)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function checkCartRule(RuleEntity $cartRule): bool
+    {
+        $payload = $cartRule->getPayload();
+        if (!$payload instanceof Container) {
+            return true;
+        }
+
+        foreach ($payload->getRules() as $rule) {
+            if ($rule instanceof Container && $this->checkRuleType($rule) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function validateCart(Cart $cart, Context $context): void
