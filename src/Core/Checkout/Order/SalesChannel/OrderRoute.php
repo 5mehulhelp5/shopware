@@ -52,7 +52,7 @@ class OrderRoute extends AbstractOrderRoute
     {
         $orderResult = $this->orderService->getOrdersByCriteria($criteria, $context);
         $orders = $orderResult->getEntities();
-        $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn(Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
+        $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn (Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
             || \in_array('deepLinkCode', $filter->getFields(), true))) ?: null;
         // remove old orders only if there is a deeplink filter
         if ($deepLinkFilter !== null) {
@@ -92,7 +92,7 @@ class OrderRoute extends AbstractOrderRoute
         // Search with deepLinkCode needs updatedAt Filter
         $latestOrderDate = (new \DateTime())->setTimezone(new \DateTimeZone('UTC'))->modify(-abs(30) . ' Day');
 
-        return $orders->filter(fn(OrderEntity $order) => $order->getCreatedAt() > $latestOrderDate || $order->getUpdatedAt() > $latestOrderDate);
+        return $orders->filter(fn (OrderEntity $order) => $order->getCreatedAt() > $latestOrderDate || $order->getUpdatedAt() > $latestOrderDate);
     }
 
     /**

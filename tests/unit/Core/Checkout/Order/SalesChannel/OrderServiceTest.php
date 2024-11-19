@@ -182,7 +182,7 @@ class OrderServiceTest extends TestCase
         $orderResult = $this->createMock(EntitySearchResult::class);
         $orderResult->method('getTotal')->willReturn(1);
         $orderResult->method('getElements')->willReturn([$order]);
-        $this->orderRepository->method("search")->willReturn($orderResult);
+        $this->orderRepository->method('search')->willReturn($orderResult);
         $ordersCollection = $this->orderService->getOrdersByCriteria($criteria, $context);
         static::assertCount(1, $ordersCollection->getElements());
         static::assertSame($order, $ordersCollection->getElements()[0]);

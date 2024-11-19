@@ -95,7 +95,7 @@ class OrderService
         $criteria->addAssociation('billingAddress');
         $criteria->addAssociation('orderCustomer.customer');
 
-        $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn(Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
+        $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn (Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
             || \in_array('deepLinkCode', $filter->getFields(), true))) ?: null;
 
         if ($context->getCustomer()) {
