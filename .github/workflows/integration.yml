@@ -100,7 +100,7 @@ jobs:
           retention-days: 3
 
   phpunit:
-    name: "${{ matrix.suite.name }} ${{matrix.suite.path }}"
+    name: "${{ matrix.suite.name }} ${{matrix.suite.path }} PHP ${{ matrix.php-version }}"
     continue-on-error: ${{ !matrix.stable }}
     runs-on: ubuntu-latest
     strategy:
@@ -108,24 +108,28 @@ jobs:
       matrix:
         suite:
           - name: integration
-            path: tests/integration/Administration
+            path: Administration
           - name: integration
-            path: tests/integration/Core/Checkout
+            path: Core/Checkout
           - name: integration
-            path: tests/integration/Core/Content
+            path: Core/Content
           - name: integration
-            path: tests/integration/Core/Framework
+            path: Core/Framework
           - name: integration
-            path: tests/integration/Core/Installer
+            path: Core/Installer
           - name: integration
-            path: tests/integration/Core/Maintenance
+            path: Core/Maintenance
           - name: integration
-            path: tests/integration/Core/System
+            path: Core/System
           - name: integration
-            path: tests/integration/Elasticsearch
+            path: Elasticsearch
           - name: integration
-            path: tests/integration/Storefront
+            path: Storefront
           - name: migration,devops
+        php-version:
+          - 8.2
+          - 8.3
+          - 8.4
     env:
       APP_ENV: test
       DATABASE_URL: mysql://root@127.0.0.1:3306/root
@@ -149,6 +153,7 @@ jobs:
       - name: Setup Shopware
         uses: shopware/setup-shopware@main
         with:
+          php-version: ${{ matrix.php-version }}
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
 
@@ -159,7 +164,7 @@ jobs:
         run: php src/Core/TestBootstrap.php
 
       - name: Run PHPUnit
-        run: php -d memory_limit=-1 vendor/bin/phpunit --testsuite "${{ matrix.suite.name }}" -- ${{ matrix.suite.path || '' }}
+        run: php -d memory_limit=-1 vendor/bin/phpunit --testsuite "${{ matrix.suite.name }}" -- tests/integration/${{ matrix.suite.path || '' }}
 
   win-checkout:
     runs-on: windows-latest
