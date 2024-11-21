@@ -101,7 +101,6 @@ jobs:
 
   phpunit:
     name: "${{ matrix.suite.name }} ${{matrix.suite.path }} PHP ${{ matrix.php-version }}"
-    continue-on-error: ${{ !matrix.stable }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
