@@ -15,11 +15,11 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionEnti
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\Event\OrderCriteriaEvent;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Checkout\Order\OrderException;
 use Shopware\Core\Checkout\Order\SalesChannel\OrderService;
 use Shopware\Core\Checkout\Order\Validation\OrderValidationFactory;
 use Shopware\Core\Content\Product\State;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
@@ -28,7 +28,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 use Shopware\Core\Framework\Validation\DataBag\DataBag;
 use Shopware\Core\Framework\Validation\DataValidator;
 use Shopware\Core\Framework\Validation\Exception\ConstraintViolationException;
-use Shopware\Core\System\SalesChannel\Aggregate\SalesChannelDomain\SalesChannelDomainEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Core\System\StateMachine\Aggregation\StateMachineState\StateMachineStateEntity;
@@ -232,7 +231,7 @@ class OrderServiceTest extends TestCase
     {
         $criteria = new Criteria();
         $context = $this->createMock(SalesChannelContext::class);
-        $this->expectException(CartException::class);
+        $this->expectException(OrderException::class);
         $this->orderService->getOrdersByCriteria($criteria, $context);
     }
 }
