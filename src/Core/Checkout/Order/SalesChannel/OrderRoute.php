@@ -2,15 +2,9 @@
 
 namespace Shopware\Core\Checkout\Order\SalesChannel;
 
-use Shopware\Core\Checkout\Cart\CartException;
-use Shopware\Core\Checkout\Cart\Exception\CustomerNotLoggedInException;
-use Shopware\Core\Checkout\Order\Exception\GuestNotAuthenticatedException;
-use Shopware\Core\Checkout\Order\Exception\WrongGuestCredentialsException;
 use Shopware\Core\Checkout\Order\OrderCollection;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Order\OrderException;
-use Shopware\Core\Checkout\Promotion\PromotionCollection;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\Filter;
@@ -19,7 +13,6 @@ use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
 use Shopware\Core\Framework\RateLimiter\Exception\RateLimitExceededException;
 use Shopware\Core\Framework\RateLimiter\RateLimiter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Shopware\Core\Checkout\Order\SalesChannel\OrderService;
@@ -31,13 +24,9 @@ class OrderRoute extends AbstractOrderRoute
     /**
      * @internal
      *
-     * @param EntityRepository<OrderCollection> $orderRepository
-     * @param EntityRepository<PromotionCollection> $promotionRepository
      */
     public function __construct(
-        private readonly EntityRepository $orderRepository,
         private readonly RateLimiter $rateLimiter,
-        private readonly EventDispatcherInterface $eventDispatcher,
         private readonly OrderService $orderService
     ) {
     }
@@ -51,6 +40,7 @@ class OrderRoute extends AbstractOrderRoute
     public function load(Request $request, SalesChannelContext $context, Criteria $criteria): OrderRouteResponse
     {
         $orderResult = $this->orderService->getOrdersByCriteria($criteria, $context);
+        /** @var OrderCollection $orders */
         $orders = $orderResult->getEntities();
         $deepLinkFilter = \current(array_filter($criteria->getFilters(), static fn (Filter $filter) => \in_array('order.deepLinkCode', $filter->getFields(), true)
             || \in_array('deepLinkCode', $filter->getFields(), true))) ?: null;
@@ -68,7 +58,7 @@ class OrderRoute extends AbstractOrderRoute
             } catch (RateLimitExceededException $exception) {
                 throw OrderException::customerAuthThrottledException($exception->getWaitTime(), $exception);
             }
-
+            /** @var OrderEntity|null $order */
             $order = $orders->first();
             $this->checkGuestAuth($order, $request);
         }
@@ -79,8 +69,9 @@ class OrderRoute extends AbstractOrderRoute
         $response = new OrderRouteResponse($orderResult);
 
         foreach ($orders as $order) {
+            /** @var OrderEntity $order */
             if ($this->orderService->isPaymentChangeableByTransactionState($order) || ($request->get('checkPromotion') === true && $this->orderService->isPaymentChangeableByPromotions($order, $context))) {
-                $response->addPaymentChangeable([$order->getId() => true]);
+                $response->addPaymentChangeable(paymentChangeable: [$order->getId() => true]);
             }
         }
 
@@ -96,25 +87,24 @@ class OrderRoute extends AbstractOrderRoute
     }
 
     /**
-     * @throws CustomerNotLoggedInException
-     * @throws WrongGuestCredentialsException
-     * @throws GuestNotAuthenticatedException
+     * @param OrderEntity|null $order
+     * @throws OrderException
      */
     private function checkGuestAuth(?OrderEntity $order, Request $request): void
     {
         if ($order === null) {
-            throw new GuestNotAuthenticatedException();
+            throw OrderException::guestCustomerNotLoggedIn();
         }
 
         $orderCustomer = $order->getOrderCustomer();
         if ($orderCustomer === null) {
-            throw CartException::customerNotLoggedIn();
+            throw OrderException::customerNotLoggedIn();
         }
 
         $guest = $orderCustomer->getCustomer() !== null && $orderCustomer->getCustomer()->getGuest();
         // Throw exception when customer is not guest
         if (!$guest) {
-            throw CartException::customerNotLoggedIn();
+            throw OrderException::guestCustomerNotLoggedIn();
         }
 
         // Verify email and zip code with this order
@@ -125,10 +115,10 @@ class OrderRoute extends AbstractOrderRoute
                 || $request->get('email') !== $orderCustomer->getEmail()
                 || $request->get('zipcode') !== $billingAddress->getZipcode()
             ) {
-                throw new WrongGuestCredentialsException();
+                throw OrderException::guestWrongCredentials();
             }
         } else {
-            throw new GuestNotAuthenticatedException();
+            throw OrderException::guestCustomerNotLoggedIn();
         }
     }
 }

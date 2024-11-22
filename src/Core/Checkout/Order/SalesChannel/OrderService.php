@@ -3,11 +3,11 @@
 namespace Shopware\Core\Checkout\Order\SalesChannel;
 
 use Shopware\Core\Checkout\Cart\Cart;
-use Shopware\Core\Checkout\Cart\CartException;
 use Shopware\Core\Checkout\Cart\SalesChannel\CartService;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\Exception\PaymentMethodNotAvailableException;
 use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Checkout\Order\OrderException;
 use Shopware\Core\Checkout\Promotion\PromotionCollection;
 use Shopware\Core\Checkout\Promotion\PromotionEntity;
 use Shopware\Core\Content\Product\State;
@@ -37,6 +37,7 @@ use Shopware\Core\Checkout\Cart\Rule\PaymentMethodRule;
 use Shopware\Core\Framework\Adapter\Database\ReplicaConnection;
 use Shopware\Core\Checkout\Order\Event\OrderCriteriaEvent;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\Filter;
+use Shopware\Core\Checkout\Order\OrderCollection;
 
 #[Package('checkout')]
 class OrderService
@@ -83,6 +84,9 @@ class OrderService
         return $this->cartService->order($cart, $context, $data->toRequestDataBag());
     }
 
+    /**
+     * @return EntitySearchResult<OrderCollection>
+     */
     public function getOrdersByCriteria(Criteria $criteria, SalesChannelContext $context): EntitySearchResult
     {
         ReplicaConnection::ensurePrimary();
@@ -101,12 +105,13 @@ class OrderService
         if ($context->getCustomer()) {
             $criteria->addFilter(new EqualsFilter('order.orderCustomer.customerId', $context->getCustomer()->getId()));
         } elseif ($deepLinkFilter === null) {
-            throw CartException::customerNotLoggedIn();
+         throw OrderException::customerNotLoggedIn();
         }
 
         $this->eventDispatcher->dispatch(new OrderCriteriaEvent($criteria, $context));
-
-        return $this->orderRepository->search($criteria, $context->getContext());
+        /** @var EntitySearchResult<OrderCollection> $searchResult */
+        $searchResult = $this->orderRepository->search($criteria, $context->getContext());
+        return $searchResult;
     }
 
     /**
@@ -215,6 +220,7 @@ class OrderService
 
     public function isPaymentChangeableByPromotions(OrderEntity $order, SalesChannelContext $context): bool
     {
+        /** @var PromotionCollection $promotions */
         $promotions = $this->getActivePromotions($order, $context);
 
         foreach ($promotions as $promotion) {
@@ -243,7 +249,7 @@ class OrderService
             $criteria->addAssociation('cartRules');
             $promotions = $this->promotionRepository->search($criteria, $context->getContext())->getEntities();
         }
-
+        /** @var PromotionCollection $promotions */
         return $promotions;
     }
 

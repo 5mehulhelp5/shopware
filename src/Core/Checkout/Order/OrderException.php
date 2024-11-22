@@ -25,6 +25,8 @@ class OrderException extends HttpException
     final public const ORDER_CAN_NOT_RECALCULATE_LIVE_VERSION_CODE = 'CHECKOUT__ORDER_CAN_NOT_RECALCULATE_LIVE_VERSION';
     final public const ORDER_PAYMENT_METHOD_NOT_CHANGEABLE_CODE = 'CHECKOUT__ORDER_PAYMENT_METHOD_NOT_CHANGEABLE';
     final public const ORDER_CUSTOMER_NOT_LOGGED_IN = 'CHECKOUT__ORDER_CUSTOMER_NOT_LOGGED_IN';
+    final public const ORDER_GUEST_CUSTOMER_NOT_LOGGED_IN = 'CHECKOUT__ORDER_GUEST_CUSTOMER_NOT_LOGGED_IN';
+    final public const ORDER_GUEST_CUSTOMER_WRONG_CREDENTIALS = 'CHECKOUT__ORDER_GUEST_CUSTOMER_WRONG_CREDENTIALS';
     final public const ORDER_CUSTOMER_ADDRESS_NOT_FOUND = 'CHECKOUT__ORDER_CUSTOMER_ADDRESS_NOT_FOUND';
     final public const ORDER_INVALID_ORDER_ADDRESS_MAPPING = 'CHECKOUT__INVALID_ORDER_ADDRESS_MAPPING';
     final public const ORDER_DELIVERY_WITHOUT_ADDRESS = 'CHECKOUT__DELIVERY_WITHOUT_ADDRESS';
@@ -136,6 +138,25 @@ class OrderException extends HttpException
             'Customer is not logged in.',
         );
     }
+
+    public static function guestCustomerNotLoggedIn(): self
+    {
+        return new self(
+            Response::HTTP_FORBIDDEN,
+            self::ORDER_GUEST_CUSTOMER_NOT_LOGGED_IN,
+            'Guest customer is not logged in.',
+        );
+    }
+
+    public static function guestWrongCredentials(): self
+    {
+        return new self(
+            Response::HTTP_FORBIDDEN,
+            self::ORDER_GUEST_CUSTOMER_WRONG_CREDENTIALS,
+            'Wrong credentials for guest authentication.',
+        );
+    }
+
 
     public static function customerAuthThrottledException(int $waitTime, ?\Throwable $e = null): ShopwareHttpException
     {

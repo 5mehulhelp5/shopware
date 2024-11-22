@@ -7,6 +7,9 @@ use Shopware\Core\Framework\ShopwareHttpException;
 use Symfony\Component\HttpFoundation\Response;
 
 #[Package('checkout')]
+/**
+ * @deprecated - use Shopware\Core\Checkout\Order\OrderException instead
+ */
 class WrongGuestCredentialsException extends ShopwareHttpException
 {
     public function __construct()
