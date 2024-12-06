@@ -7,7 +7,7 @@ on:
 
 jobs:
   acceptance:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -103,7 +103,7 @@ jobs:
   phpunit:
     name: "${{ matrix.suite.name }} ${{matrix.suite.path }}"
     continue-on-error: ${{ !matrix.stable }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -173,7 +173,7 @@ jobs:
       - name: Clone platform
         uses: actions/checkout@v4
   php-security:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: "Composer dependencies"
     env:
       COMPOSER_ROOT_VERSION: 6.6.9999999-dev
@@ -198,7 +198,7 @@ jobs:
         run: ./local-php-security-checker
   code-ql:
     name: Analyze
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       fail-fast: false
@@ -223,7 +223,7 @@ jobs:
         uses: github/codeql-action/analyze@v3
 
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: ${{ github.repository == 'shopware/shopware' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
     permissions:
       packages: write
@@ -270,7 +270,7 @@ jobs:
 
   tested-update-versions:
     name: tested-versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       first-version: ${{ steps.versions.outputs.first-version }}
       latest-version: ${{ steps.versions.outputs.latest-version }}
@@ -283,7 +283,7 @@ jobs:
 
   acceptance-update:
     needs: tested-update-versions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -386,7 +386,7 @@ jobs:
 
   blue-green-66-67:
     name: "PHP blue green 6.6 -> 6.7 -> 6.6"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       APP_ENV: test
       APP_URL: http://localhost:8000
