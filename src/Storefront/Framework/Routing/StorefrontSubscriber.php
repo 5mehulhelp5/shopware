@@ -19,6 +19,7 @@ use Shopware\Core\SalesChannelRequest;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Storefront\Event\StorefrontRenderEvent;
+use Shopware\Storefront\Theme\StorefrontPluginConfiguration\StorefrontPluginConfiguration;
 use Shopware\Storefront\Theme\StorefrontPluginRegistryInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -287,7 +288,12 @@ class StorefrontSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $themeConfig = $this->themeRegistry->getConfigurations()->getByTechnicalName($theme);
+        if (\method_exists($this->themeRegistry, 'getByTechnicalName')) {
+            /** @var StorefrontPluginConfiguration|null $themeConfig */
+            $themeConfig = $this->themeRegistry->getByTechnicalName($theme);
+        } else {
+            $themeConfig = $this->themeRegistry->getConfigurations()->getByTechnicalName($theme);
+        }
 
         if (!$themeConfig) {
             return;
