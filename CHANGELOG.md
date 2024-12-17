@@ -1,6 +1,9 @@
 # Changelog
 This is the official changelog index of Shopware 6. Here you find a registry of all Shopware 6 releases with a reference to the detailed changelog of each version. If you want to know more about how the changelog is created have a look [here](/adr/workflow/2020-08-03-implement-New-Changelog.md).
 
+## 6.6.9.1
+*  [NEXT-38322 - Services stability improvements](./changelog/release-6-6-9-1/2024-12-11-services-stability-improvements.md)
+
 ## 6.6.9.0
 *  [#3513 - Allow rate limiter usage twice without breaking memoized rate limit configuration](./changelog/release-6-6-9-0/2024-01-15-allow-rate-limiter-usage-twice-without-breaking-memoized-configuration.md) ([Joshua Behrens](https://github.com/JoshuaBehrens))
 *  [#3829 - Remove cover of line item if media has been deleted](./changelog/release-6-6-9-0/2024-08-05-remove-cover-of-line-item-if-media-has-been-deleted.md) ([Max](https://github.com/aragon999))
