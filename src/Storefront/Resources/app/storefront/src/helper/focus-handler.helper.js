@@ -2,7 +2,10 @@
  * This class is used to make it easier to preserve the focus state.
  * It is used to set the focus back to a given element after displaying content in a modal.
  *
+ * @module FocusHandler
+ *
  * @sw-package framework
+ * @sw-docs Storefront
  */
 export default class FocusHandler {
 
@@ -24,8 +27,13 @@ export default class FocusHandler {
      * It is also possible to pass a selector (string) to search for a specific element during `resumeFocusState`.
      * This can be used when the original element reference is no longer available. E.g. due to DOM modifications.
      *
-     * @param {string} focusHistoryKey
-     * @param {HTMLElement|string} focusEl
+     * @example
+     * const button = document.getElementById('gallery-button');
+     *
+     * window.focusHandler.saveFocusState('image-gallery', button);
+     *
+     * @param {string} focusHistoryKey - A key string under which the focus state should be saved.
+     * @param {HTMLElement|string} focusEl - A reference to an HTML element or an element selector.
      */
     saveFocusState(focusHistoryKey = this._defaultHistoryKey, focusEl = document.activeElement) {
         this._focusMap.set(focusHistoryKey, focusEl);

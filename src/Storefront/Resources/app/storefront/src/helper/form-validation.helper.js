@@ -1,7 +1,10 @@
 /**
  * @module FormValidation
  *
- * This class is a service to make HTML form validation easy.
+ * @sw-package framework
+ * @sw-docs Storefront
+ *
+ * @description This class is a service to make HTML form validation easy.
  * It helps to implement all best-practices for accessible form validation.
  *
  * The class is made available as a central instance at the window object.
@@ -11,7 +14,7 @@
  * const form = document.getElementById('contact-form');
  * const invalidFields = window.formValidation.validateForm(form);
  *
- * This service is used by the form handler plugin.
+ * @description This service is used by the form handler plugin.
  * You can use the plugin to apply the full form handling to your form.
  * Use the associated data attribute to activate the plugin.
  *
@@ -20,7 +23,7 @@
  *      <input type="email" data-validation="required,email">
  * </form>
  *
- * To get the full set of best practices, you can use the form components
+ * @description To get the full set of best practices, you can use the form components
  * in Twig under `storefront/component/form` to render proper form fields in your form.
  * You can use them via `{% sw_include }%` to import the template.
  *

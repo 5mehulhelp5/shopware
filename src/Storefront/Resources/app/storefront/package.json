@@ -23,7 +23,8 @@
     "production": "NODE_ENV=production webpack --config webpack.config.js",
     "unit": "jest --config jest.config.js --ci",
     "unit-watch": "jest --config jest.config.js --watch",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "docs": "node bin/docs-generate.mjs"
   },
   "dependencies": {
     "@popperjs/core": "2.11.8",
@@ -78,6 +79,8 @@
     "jest": "24.8.0",
     "jest-junit": "6.3.0",
     "jest-plugin-clock": "2.9.0",
+    "jsdoc-to-markdown": "^9.1.1",
+    "handlebars": "^4.7.8",
     "license-checker-rseidelsohn": "4.3.0",
     "lodash.get": "4.4.2",
     "stylelint": "14.16.1",

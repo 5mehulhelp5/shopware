@@ -1,0 +1,50 @@
+# {{name}}
+
+{{description}}
+
+{{#if methods}}
+## Methods
+
+{{#each methods}}
+* [{{this.name}}](#{{this.name}})
+{{/each}}
+
+{{#each methods}}
+### {{this.name}}
+
+{{{this.description}}}
+
+{{#if this.returns}}
+**Returns:** {{#each this.returns}}{{#if @index}}, {{/if}}{{this.type.names}}{{/each}}
+{{/if}}
+
+{{#if this.examples}}
+#### Example
+{{#each this.examples}}
+```JavaScript
+{{{this}}}
+```
+{{/each}}
+{{/if}}
+
+{{#if this.params}}
+#### Parameters
+<table>
+    <tr>
+        <th>Param</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    {{#each this.params}}
+    <tr>
+        <td>{{this.name}}</td>
+        <td>{{#each this.type.names}}{{#if @index}}, {{/if}}{{this}}{{/each}}</td>
+        <td>{{this.description}}</td>
+    <tr>
+    {{/each}}
+</table>
+{{/if}}
+
+{{/each}}
+
+{{/if}}

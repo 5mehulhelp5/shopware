@@ -2,13 +2,13 @@ import DomAccess from 'src/helper/dom-access.helper';
 import Iterator from 'src/helper/iterator.helper';
 
 const ARROW_NAVIGATION_ACTIVE_CLASS = 'is-active';
-
 const ARROW_NAVIGATION_ITERATOR_DEFAULT = -1;
 
 export default class ArrowNavigationHelper {
 
     /**
      * Constructor.
+     *
      * @param {Element} element
      * @param {string} parentSelector
      * @param {string} itemSelector

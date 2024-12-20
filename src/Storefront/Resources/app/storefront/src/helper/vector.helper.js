@@ -133,7 +133,7 @@ class Vector {
     /**
      * compares dimension and entries of a vector
      *
-     * @param {Vector,Array<number>}args
+     * @param {...Vector|Array<number>} args
      * @returns {boolean}
      */
     equals(...args) {
@@ -155,7 +155,8 @@ class Vector {
 
     /**
      * Returns dot product of vertices
-     * @param vector
+     *
+     * @param {Vector} vector
      * @returns {*}
      */
     dot(vector) {
