@@ -140,6 +140,7 @@ class ElasticsearchProductDefinition extends AbstractElasticsearchDefinition
             'properties' => $properties,
         ];
 
+        dd($this->excludeSource, $debug, !$this->excludeSource && !$debug, $this->environment);
         if (!$this->excludeSource && !$debug) {
             $mapping['_source'] = ['includes' => ['id', 'autoIncrement']];
         }
