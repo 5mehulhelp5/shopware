@@ -34,7 +34,7 @@ jobs:
           working-directory: ""
 
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
@@ -61,7 +61,7 @@ jobs:
     name: "PHPStan"
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
@@ -126,7 +126,7 @@ jobs:
       DATABASE_HOST: "127.0.0.1"
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           install: true
           shopware-version: ${{ github.ref }}
@@ -183,7 +183,7 @@ jobs:
 
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           php-version: 8.4
           shopware-version: ${{ github.ref }}
@@ -217,7 +217,7 @@ jobs:
     name: "PHP license check"
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}

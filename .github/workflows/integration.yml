@@ -67,7 +67,7 @@ jobs:
           echo "ADMIN_VITE=1" >> $GITHUB_ENV
 
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           mysql-version: 'skip'
           shopware-version: ${{ github.ref }}
@@ -181,7 +181,7 @@ jobs:
         options: --health-cmd="mysqladmin ping || mariadb-admin ping"
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           php-version: ${{ matrix.php }}
           mysql-version: 'skip'
@@ -272,7 +272,7 @@ jobs:
       COMPOSER_ROOT_VERSION: 6.6.9999999-dev
     steps:
       - name: Setup Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
@@ -343,7 +343,7 @@ jobs:
       - name: Create shopware dirs
         run: mkdir -p old-shopware new-shopware
       - name: Setup new Shopware
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         env:
           COMPOSER_ROOT_VERSION: 6.6.9999999-dev
         with:
@@ -446,7 +446,7 @@ jobs:
 
     steps:
       - name: Setup previous major version
-        uses: shopware/setup-shopware@main
+        uses: shopware/setup-shopware@use-forked-setup-php
         with:
           install: "false"
           shopware-version: ${{ github.ref }}
