@@ -219,7 +219,7 @@ final class CreditNoteRenderer extends AbstractDocumentRenderer
 
         // Get the correct order with versioning from reference invoice
         $versionContext = $context->createWithVersionId($versionId)->assign([
-            'languageIdChain' => array_values(array_unique(array_filter([$languageId, ...$context->getLanguageIdChain()]))),
+            'languageIdChain' => \array_values(\array_unique(\array_filter([$languageId, ...$context->getLanguageIdChain()]))),
         ]);
 
         $criteria = OrderDocumentCriteriaFactory::create([$orderId], $deepLinkCode, self::TYPE)
@@ -233,7 +233,7 @@ final class CreditNoteRenderer extends AbstractDocumentRenderer
         }
 
         $versionContext = $context->createWithVersionId(Defaults::LIVE_VERSION)->assign([
-            'languageIdChain' => array_values(array_unique(array_filter([$languageId, ...$context->getLanguageIdChain()]))),
+            'languageIdChain' => \array_values(\array_unique(\array_filter([$languageId, ...$context->getLanguageIdChain()]))),
         ]);
 
         $criteria = OrderDocumentCriteriaFactory::create([$orderId], $deepLinkCode, self::TYPE);
