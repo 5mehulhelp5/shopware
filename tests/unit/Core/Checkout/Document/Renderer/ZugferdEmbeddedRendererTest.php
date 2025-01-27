@@ -36,10 +36,10 @@ class ZugferdEmbeddedRendererTest extends TestCase
     public function testRender(): void
     {
         $invoiceResult = new RendererResult();
-        $invoiceResult->addSuccess('success', new RenderedDocument(content: $this->getPDFContent()));
-        $invoiceResult->addSuccess('emptyXML', new RenderedDocument(content: $this->getPDFContent()));
+        $invoiceResult->addSuccess('success', new RenderedDocument());
+        $invoiceResult->addSuccess('emptyXML', new RenderedDocument());
         $invoiceResult->addSuccess('emptyPDF', new RenderedDocument());
-        $invoiceResult->addSuccess('invoiceSuccess', new RenderedDocument(content: $this->getPDFContent()));
+        $invoiceResult->addSuccess('invoiceSuccess', new RenderedDocument());
         $invoiceResult->addSuccess('missingZugferd', new RenderedDocument());
         $invoiceResult->addError('zugferdSuccess', new \RuntimeException('invoice broken'));
 
@@ -49,11 +49,11 @@ class ZugferdEmbeddedRendererTest extends TestCase
             ->willReturn($invoiceResult);
 
         $zugferdResult = new RendererResult();
-        $zugferdResult->addSuccess('success', new RenderedDocument(content: $this->getXMLContent()));
+        $zugferdResult->addSuccess('success', new RenderedDocument());
         $zugferdResult->addSuccess('emptyXML', new RenderedDocument());
-        $zugferdResult->addSuccess('emptyPDF', new RenderedDocument(content: $this->getXMLContent()));
+        $zugferdResult->addSuccess('emptyPDF', new RenderedDocument());
         $zugferdResult->addError('invoiceSuccess', new \RuntimeException('zugferd document broken'));
-        $zugferdResult->addSuccess('zugferdSuccess', new RenderedDocument(content: $this->getXMLContent()));
+        $zugferdResult->addSuccess('zugferdSuccess', new RenderedDocument());
 
         $zugferdRenderer = $this->createMock(AbstractDocumentRenderer::class);
         $zugferdRenderer

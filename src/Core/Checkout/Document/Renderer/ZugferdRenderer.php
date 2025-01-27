@@ -96,8 +96,20 @@ class ZugferdRenderer extends AbstractDocumentRenderer
             $config->setDocumentNumber($documentNumber = $this->getNumber($context, $order, $operation));
         }
 
+        $doc = new RenderedDocument(
+            '', // @deprecated tag:v6.7.0 - will be removed
+            $documentNumber,
+            $config->buildName(),
+            FileTypes::XML,
+            $config->jsonSerialize(),
+            'application/xml'
+        );
+
+        $doc->setOrder($order);
+        $doc->setContext($context);
+
         try {
-            $content = $this->documentBuilder->buildDocument($order, $operation, $config, $context);
+            $content = $this->documentBuilder->buildDocument($doc);
             $renderResult->addSuccess(
                 $order->getId(),
                 new RenderedDocument(

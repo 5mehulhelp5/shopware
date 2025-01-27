@@ -1,61 +1,78 @@
 <?php declare(strict_types=1);
 
-namespace Shopware\Core\Checkout\Document\Renderer;
+namespace Shopware\Core\Checkout\Document\Service;
 
+use Dompdf\Adapter\CPDF;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use horstoeko\zugferd\ZugferdDocumentPdfMerger;
+use Shopware\Core\Checkout\Document\DocumentConfiguration;
+use Shopware\Core\Checkout\Document\DocumentConfigurationFactory;
 use Shopware\Core\Checkout\Document\DocumentException;
+use Shopware\Core\Checkout\Document\Extension\PdfRendererExtension;
+use Shopware\Core\Checkout\Document\Renderer\DocumentRendererConfig;
+use Shopware\Core\Checkout\Document\Renderer\RenderedDocument;
+use Shopware\Core\Checkout\Document\Renderer\RendererResult;
 use Shopware\Core\Checkout\Document\Struct\DocumentGenerateOperation;
+use Shopware\Core\Checkout\Document\Twig\DocumentTemplateRenderer;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\Extensions\ExtensionDispatcher;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
 
 #[Package('after-sales')]
-final class ZugferdEmbeddedRenderer extends AbstractDocumentRenderer
+class ZugferdPdfRenderer extends AbstractDocumentTypeRenderer
 {
-    public const TYPE = 'zugferd_embedded_invoice';
+    public const FILE_EXTENSION = 'pdf';
+
+    public const FILE_CONTENT_TYPE = 'application/pdf';
 
     /**
      * @internal
+     *
+     * @param array<string, mixed> $dompdfOptions
      */
     public function __construct(
-        protected AbstractDocumentRenderer $invoiceRenderer,
-        protected AbstractDocumentRenderer $electronicRenderer,
-        protected string $shopwareVersion
+        private readonly array $dompdfOptions,
+        private readonly DocumentTemplateRenderer $documentTemplateRenderer,
+        private readonly string $rootDir,
+        private readonly ExtensionDispatcher $extensions,
+        private readonly AbstractDocumentTypeRenderer $zugferdRenderer
     ) {
     }
 
-    public function supports(): string
+    public function getContentType(): string
     {
-        return self::TYPE;
+        return self::FILE_CONTENT_TYPE;
     }
 
-    public function getDecorated(): AbstractDocumentRenderer
+    public function render(RenderedDocument $document): string
+    {
+        return $this->extensions->publish(
+            name: PdfRendererExtension::NAME,
+            extension: new PdfRendererExtension($document),
+            function: $this->_render(...)
+        );
+    }
+
+    public function getDecorated(): AbstractDocumentTypeRenderer
     {
         throw new DecorationPatternException(self::class);
     }
 
-    public function render(array $operations, Context $context, DocumentRendererConfig $rendererConfig): RendererResult
+    private function _render(RenderedDocument $document): string
     {
-        $invoice = $this->invoiceRenderer->render($operations, $context, $rendererConfig);
+        $pdfRenderer = new PdfRenderer(
+            $this->dompdfOptions,
+            $this->documentTemplateRenderer,
+            $this->rootDir,
+            $this->extensions
+        );
 
-        if (!Feature::isActive('v6.7.0.0')) {
-            return $invoice;
-        }
+        $pdfDocument = $pdfRenderer->render($document);
 
-        return $this->embedXMLIntoPDF($operations, $context, $rendererConfig, $invoice);
-    }
-
-    /**
-     * @deprecated tag:v6.7.0 - will be removed without replacement
-     *
-     * @param DocumentGenerateOperation[] $operations
-     */
-    public function finalize(array $operations, Context $context, DocumentRendererConfig $rendererConfig, RendererResult $result): void
-    {
-        Feature::triggerDeprecationOrThrow('v6.7.0.0', 'Method will be removed without replacement');
-
-        $this->embedXMLIntoPDF($operations, $context, $rendererConfig, $result);
+        return $this->embedXMLIntoPDF($operations, $context, $rendererConfig, $pdfDocument);
     }
 
     /**
@@ -65,7 +82,7 @@ final class ZugferdEmbeddedRenderer extends AbstractDocumentRenderer
     {
         // So ElectronicRenderer don't need to create a new number
         $this->setSuccessDocumentNumbers($invoice->getSuccess(), $operations);
-        $electronicInvoice = $this->electronicRenderer->render($operations, $context, $rendererConfig);
+        $electronicInvoice = $this->zugferdRenderer->render($operations, $context, $rendererConfig);
         $renderResult = new RendererResult();
 
         foreach ($invoice->getSuccess() as $orderId => $invoiceDocument) {

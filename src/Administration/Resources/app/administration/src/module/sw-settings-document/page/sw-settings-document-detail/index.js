@@ -117,6 +117,14 @@ export default {
                                 id: 'html',
                                 name: 'HTML',
                             },
+                            {
+                                id: 'xml',
+                                name: 'ZugFerd XML',
+                            },
+                            {
+                                id: 'einvoice',
+                                name: 'ZugFerd PDF',
+                            },
                         ],
                         label: this.$tc('sw-settings-document.detail.labelFileTypes'),
                     },

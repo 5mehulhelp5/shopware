@@ -7,14 +7,12 @@ use horstoeko\zugferd\ZugferdProfiles;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
 use Shopware\Core\Checkout\Cart\Price\Struct\CartPrice;
 use Shopware\Core\Checkout\Document\DocumentConfiguration;
-use Shopware\Core\Checkout\Document\Struct\DocumentGenerateOperation;
+use Shopware\Core\Checkout\Document\Renderer\RenderedDocument;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
 use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
-use Shopware\Core\Checkout\Order\OrderEntity;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Log\Package;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -29,8 +27,10 @@ class ZugferdBuilder
     ) {
     }
 
-    public function buildDocument(OrderEntity $order, DocumentGenerateOperation $operation, DocumentConfiguration $config, Context $context): string
+    public function buildDocument(RenderedDocument $doc): string
     {
+        $order = $doc->getOrder();
+
         /** @var OrderAddressEntity $billingAddress */
         $billingAddress = $order->getAddresses()?->get($order->getBillingAddressId());
         /** @var OrderCustomerEntity $customer */
@@ -41,16 +41,18 @@ class ZugferdBuilder
             $deliveryDate = \DateTime::createFromImmutable($deliveryDate);
         }
 
+        $config = (new DocumentConfiguration())->assign($doc->getConfig());
+
         $document = (new ZugferdDocument(ZugferdDocumentBuilder::createNew(ZugferdProfiles::PROFILE_XRECHNUNG_3), $order->getTaxStatus() === CartPrice::TAX_STATE_GROSS))
             ->withBuyerInformation($customer, $billingAddress)
             ->withSellerInformation($config)
             ->withDelivery($order->getDeliveries() ?? new OrderDeliveryCollection())
             ->withTaxes($order->getPrice())
-            ->withGeneralOrderData($deliveryDate, $operation->getConfig()['documentDate'] ?? 'now', $config->getDocumentNumber() ?? '', $order->getCurrency()?->getIsoCode() ?? '');
+            ->withGeneralOrderData($deliveryDate, $config->getDocumentDate() ?? 'now', $config->getDocumentNumber() ?? '', $order->getCurrency()?->getIsoCode() ?? '');
 
         $this->addLineItems($document, $order->getLineItems());
 
-        $this->eventDispatcher->dispatch(new ZugferdInvoiceGeneratedEvent($document, $order, $config, $context));
+        $this->eventDispatcher->dispatch(new ZugferdInvoiceGeneratedEvent($document, $order, $config, $doc->getContext()));
 
         return $document->getContent($order);
     }
