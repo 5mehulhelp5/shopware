@@ -1,6 +1,5 @@
 import Plugin from 'src/plugin-system/plugin.class';
 import Debouncer from 'src/helper/debouncer.helper';
-import DomAccess from 'src/helper/dom-access.helper';
 
 /**
  * @sw-package framework
@@ -20,11 +19,19 @@ export default class ScrollUpPlugin extends Plugin {
         buttonSelector: '.js-scroll-up-button',
 
         /**
+         * The ID of the first page element that should get focus after scrolling back to the top.
+         */
+        topElementFocusId: 'page-top',
+
+        /**
          * scroll up button visible at position
          */
         visiblePos: 250,
-        visibleCls: 'is-visible',
 
+        /**
+         * the class that determines of the
+         */
+        visibleCls: 'is-visible',
     };
 
     init() {
@@ -93,7 +100,7 @@ export default class ScrollUpPlugin extends Plugin {
      * @returns {void}
      */
     _focusFirstElement() {
-        const element = DomAccess.getFirstFocusableElement();
+        const element = document.getElementById(this.options.topElementFocusId);
 
         window.focusHandler.setFocus(element, { preventScroll: true });
     }
