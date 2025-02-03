@@ -1,33 +1,38 @@
 /**
  * @module FormValidation
  *
- * @sw-package framework
- * @sw-docs Storefront
- *
  * @description This class is a service to make HTML form validation easy.
  * It helps to implement all best-practices for accessible form validation.
  *
  * The class is made available as a central instance at the window object.
  * Use the global instance to make use of the default form handling or create your own.
  *
- * @example
+ * **Example**
+ *
+ * ```JavaScript
  * const form = document.getElementById('contact-form');
  * const invalidFields = window.formValidation.validateForm(form);
+ * ```
  *
- * @description This service is used by the form handler plugin.
+ * This service is used by the form handler plugin.
  * You can use the plugin to apply the full form handling to your form.
  * Use the associated data attribute to activate the plugin.
  *
- * @example
+ * **Example**
+ *
+ * ```JavaScript
  * <form data-form-handler="true">
  *      <input type="email" data-validation="required,email">
  * </form>
+ * ```
  *
- * @description To get the full set of best practices, you can use the form components
+ * To get the full set of best practices, you can use the form components
  * in Twig under `storefront/component/form` to render proper form fields in your form.
  * You can use them via `{% sw_include }%` to import the template.
  *
- * @example
+ * **Example**
+ *
+ * ```JavaScript
  * {% sw_include '@Storefront/storefront/component/form/form-input.html.twig' with {
  *     label: 'account.personalFirstNameLabel'|trans|sw_sanitize,
  *     id: 'personalFirstName',
@@ -38,6 +43,10 @@
  *     validationRules: 'required',
  *     additionalClass: 'col-sm-6',
  * } %}
+ * ```
+ *
+ * @sw-package framework
+ * @sw-docs Storefront
  */
 export default class FormValidation {
 
