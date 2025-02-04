@@ -161,7 +161,7 @@ class ProductDefinition extends EntityDefinition
 
             (new ListField('variation', 'variation', StringField::class))->addFlags(new Runtime(['options.name', 'options.group.name'])),
             (new StringField('display_group', 'displayGroup'))->addFlags(new ApiAware(), new WriteProtected()),
-            (new VariantListingConfigField('variant_listing_config', 'variantListingConfig'))->addFlags(new Inherited()),
+            (new VariantListingConfigField('variant_listing_config', 'variantListingConfig'))->addFlags(new ApiAware(), new Inherited()),
             new JsonField('variant_restrictions', 'variantRestrictions'),
             (new StringField('manufacturer_number', 'manufacturerNumber'))->addFlags(new ApiAware(), new Inherited(), new SearchRanking(SearchRanking::MIDDLE_SEARCH_RANKING, false)),
             (new StringField('ean', 'ean'))->addFlags(new ApiAware(), new Inherited(), new SearchRanking(SearchRanking::MIDDLE_SEARCH_RANKING, false)),
