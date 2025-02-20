@@ -2,6 +2,8 @@
 
 namespace Shopware\Core\System\DependencyInjection\CompilerPass;
 
+use Shopware\Commercial\B2B\EmployeeManagement\Entity\Employee\EmployeeDefinition;
+use Shopware\Core\Framework\DataAbstractionLayer\AttributeEntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\BulkEntityExtension;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityExtension;
@@ -43,6 +45,11 @@ class SalesChannelEntityCompilerPass implements CompilerPassInterface
 
         $baseDefinitions = $this->formatData(
             $container->findTaggedServiceIds('shopware.entity.definition'),
+            $container
+        );
+
+        $attributeEntityDefinitions = $this->formatDataForAttributeEntity(
+            $container->findTaggedServiceIds('shopware.attribute_entity.definition'),
             $container
         );
 
@@ -129,7 +136,7 @@ class SalesChannelEntityCompilerPass implements CompilerPassInterface
         $definitionRegistry->replaceArgument(2, $entityNameMap);
         $definitionRegistry->replaceArgument(3, $repositoryNameMap);
 
-        $this->addExtensions($container, $baseDefinitions, $salesChannelDefinitions);
+        $this->addExtensions($container, $baseDefinitions, $salesChannelDefinitions, $attributeEntityDefinitions);
     }
 
     /**
@@ -156,6 +163,28 @@ class SalesChannelEntityCompilerPass implements CompilerPassInterface
             if (isset($tags[0]['entity'])) {
                 $result[$serviceId]['fallBack'] = $tags[0]['entity'];
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, array<mixed>> $taggedServiceIds
+     *
+     * @return array<string, array{entityName: string, fallback?: string}>
+     */
+    private function formatDataForAttributeEntity(
+        array $taggedServiceIds,
+        ContainerBuilder $container
+    ): array {
+        $result = [];
+
+        foreach ($taggedServiceIds as $serviceId => $tags) {
+            $service = $container->getDefinition($serviceId);
+
+            $definition = new AttributeEntityDefinition($service->getArgument(0));
+
+            $result[$serviceId]['entityName'] = $definition->getEntityName();
         }
 
         return $result;
@@ -203,7 +232,7 @@ class SalesChannelEntityCompilerPass implements CompilerPassInterface
      * @param array<string, array{entityName: string}> $baseEntityDefinitions
      * @param array<string, array{entityName: string}> $salesChannelDefinitions
      */
-    private function addExtensions(ContainerBuilder $container, array $baseEntityDefinitions, array $salesChannelDefinitions): void
+    private function addExtensions(ContainerBuilder $container, array $baseEntityDefinitions, array $salesChannelDefinitions, array $attributeEntityDefinitions): void
     {
         $entityNameMap = [];
         $salesChannelNameMap = [];
@@ -214,6 +243,10 @@ class SalesChannelEntityCompilerPass implements CompilerPassInterface
 
         foreach ($salesChannelDefinitions as $definition => $attrs) {
             $salesChannelNameMap[$attrs['entityName']] = $definition;
+        }
+
+        foreach ($attributeEntityDefinitions as $definition => $attrs) {
+            $entityNameMap[$attrs['entityName']] = $definition;
         }
 
         foreach ($container->findTaggedServiceIds('shopware.entity.extension') as $id => $tags) {

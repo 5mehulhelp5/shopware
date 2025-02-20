@@ -62,8 +62,9 @@ class AttributeEntityCompilerPass implements CompilerPassInterface
         $definition = new Definition(AttributeEntityDefinition::class);
         $definition->addArgument($meta);
         $definition->setPublic(true);
+        $definition->addTag('shopware.attribute_entity.definition');
         $container->setDefinition($entity . '.definition', $definition);
-
+//dd($container->getDefinition($entity . '.definition'));
         $registry = $container->getDefinition(DefinitionInstanceRegistry::class);
         $salesChannelRegistry = $container->getDefinition(SalesChannelDefinitionInstanceRegistry::class);
 
