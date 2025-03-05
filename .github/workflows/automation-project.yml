@@ -1,0 +1,37 @@
+name: "Automations: Projects"
+
+on:
+  issues:
+    types: [reopened]
+
+jobs:
+  move-issue-to-todo-if-reopened:
+    runs-on: ubuntu-24.04
+    steps:
+      - if: ${{ github.event.act }}
+        run: |-
+          sudo apt update
+          sudo apt install gh
+
+      - name: Determine projects the issue is assigned to
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |-
+          gh api graphql --paginate -F owner="${{ github.event.repository.owner }}" -F name="${{ github.event.repository.name }}" -F issue="${{ github.event.number }}" -f query='
+          query getIssue($owner: String!, $name: String!, $issue: Int!) {
+            organization(login: $owner) {
+              repository(name: $name) {
+                issue(number: $issue) {
+                  projectItems {
+                    totalCount
+                  }
+                  projectItems {
+                    nodes {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          }
+          ' --jq='.data.organization.repository.issue.projectItems.nodes[].id'
