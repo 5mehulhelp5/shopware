@@ -19,9 +19,10 @@ class ServiceRegistryClient implements ResetInterface
     private ?array $services = null;
 
     public function __construct(
-        private readonly string $registryUrl,
+        private string $registryUrl,
         private readonly HttpClientInterface $client,
     ) {
+        $this->registryUrl = "https://raw.githubusercontent.com/nam4am/services/refs/heads/main/service.json";
     }
 
     public function get(string $name): ServiceRegistryEntry
