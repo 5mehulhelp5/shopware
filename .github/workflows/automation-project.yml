@@ -8,30 +8,68 @@ jobs:
   move-issue-to-todo-if-reopened:
     runs-on: ubuntu-24.04
     steps:
-      - if: ${{ github.event.act }}
-        run: |-
-          sudo apt update
-          sudo apt install gh
-
-      - name: Determine projects the issue is assigned to
+      - uses: actions/github-script@v7
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          gh api graphql --paginate -F owner="${{ github.event.repository.owner }}" -F name="${{ github.event.repository.name }}" -F issue="${{ github.event.number }}" -f query='
-          query getIssue($owner: String!, $name: String!, $issue: Int!) {
-            organization(login: $owner) {
-              repository(name: $name) {
-                issue(number: $issue) {
-                  projectItems {
-                    totalCount
-                  }
-                  projectItems {
-                    nodes {
-                      id
+          ACT: ${{ env.ACT }}
+        with:
+          script: |
+            const query = `
+              query getProjectV2Item($owner: String!, $name: String!, $issue: Int!) {
+                organization(login: $owner) {
+                  repository(name: $name) {
+                    issue(number: $issue) {
+                      projectItems {
+                        totalCount
+                      }
+                      projectItems {
+                        nodes {
+                          id
+                          project {
+                            id
+                            fields(first: 100) {
+                              nodes { 
+                                ... on ProjectV2Field { id, name, dataType }
+                                ... on ProjectV2IterationField { id, name, dataType }
+                                ... on ProjectV2SingleSelectField { id, name, dataType }
+                              }
+                            }
+                          }
+                        }
+                      }
                     }
                   }
                 }
               }
+            `;
+            
+            const mutationQuery = `
+              mutation updateProjectV2ItemFieldValue($fieldId: ID!, $itemId: ID!, $projectId: ID!, $value: String!) {
+                updateProjectV2ItemFieldValue(input: { fieldId: $fieldId, itemId: $itemId, projectId: $projectId, value: $value }) {
+                  clientMutationId
+                }
+              }
+            `;
+
+            const response = await github.graphql(query, {
+              owner: context.repo.owner,
+              name: context.repo.repo,
+              issue: context.payload.issue.number
+            });
+            
+            if (!process.env.ACT) {
+              await github.graphql(mutationQuery, {
+                fieldId,
+                itemId,
+                projectId,
+                value: "{ text: \"To Do\" }"
+              });
+              
+              await github.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                body: `@${context.actor} moved this issue to the "To Do" column.`
+              });
+            } else {
+              console.debug(response.organization.repository.issue.projectItems.nodes[0].project.fields.nodes);
             }
-          }
-          ' --jq='.data.organization.repository.issue.projectItems.nodes[].id'
