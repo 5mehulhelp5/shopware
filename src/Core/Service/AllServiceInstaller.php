@@ -56,6 +56,7 @@ class AllServiceInstaller
 
         $installedServices = [];
         $newServices = $this->getNewServices($existingServices);
+        echo "New services to install: " . \count($newServices) . "\n";
         foreach ($newServices as $service) {
             $result = $this->serviceLifecycle->install($service, $context);
 

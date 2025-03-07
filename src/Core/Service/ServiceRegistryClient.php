@@ -55,13 +55,17 @@ class ServiceRegistryClient implements ResetInterface
                 ],
             ]);
 
+            echo "Response status code: " . $response->getStatusCode() . "\n";
             if ($response->getStatusCode() !== 200) {
                 return [];
             }
 
             $content = $response->toArray();
 
+            echo "Response content: " . json_encode($content) . "\n";
+
             if (!$this->validateResponse($content)) {
+                echo  "Invalid response\n";
                 return [];
             }
 
@@ -77,6 +81,7 @@ class ServiceRegistryClient implements ResetInterface
                 $content['services']
             );
         } catch (ExceptionInterface $e) {
+            echo "Exception: " . $e->getMessage() . "\n";
             return [];
         }
     }

@@ -55,10 +55,12 @@ class ServiceClient
     private function checkResponse(ResponseInterface $response): void
     {
         try {
+            echo "Response status code: " . $response->getStatusCode() . "\n";
             if ($response->getStatusCode() !== 200) {
                 throw ServiceException::requestFailed($response);
             }
         } catch (TransportExceptionInterface $exception) {
+            echo "TransportExceptionInterface: " . $exception->getMessage() . "\n";
             throw ServiceException::requestTransportError($exception);
         }
     }

@@ -54,7 +54,7 @@ class ServiceLifecycle
 
             return false;
         }
-
+echo 'App info: ' . $appInfo->revision . "\n";
         try {
             $fs = $this->sourceResolver->filesystemForVersion($appInfo);
         } catch (AppException $e) {
@@ -71,6 +71,7 @@ class ServiceLifecycle
 
             return true;
         } catch (\Exception $e) {
+            echo $e->getMessage() . "\n";
             $this->logger->debug(\sprintf('Cannot install service "%s" because of error: "%s"', $serviceEntry->name, $e->getMessage()));
 
             return false;
@@ -81,6 +82,7 @@ class ServiceLifecycle
     {
         $serviceEntry = $this->serviceRegistryClient->get($serviceName);
 
+        echo $serviceEntry->name . "\n";
         $app = $this->loadServiceByName($serviceName, $context);
 
         if (!$app) {
@@ -94,7 +96,7 @@ class ServiceLifecycle
 
             return false;
         }
-
+        echo "Latest app info: " . $latestAppInfo->revision . "\n";
         // if it's the same version, bail
         if ($app->getVersion() === $latestAppInfo->revision) {
             return true;
