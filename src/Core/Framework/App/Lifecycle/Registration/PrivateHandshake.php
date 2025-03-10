@@ -48,6 +48,7 @@ class PrivateHandshake implements AppHandshakeInterface
 
     public function fetchAppProof(): string
     {
+        echo $this->secret;
         return hash_hmac('sha256', $this->shopId . $this->shopUrl . $this->appName, $this->secret);
     }
 }

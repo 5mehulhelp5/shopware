@@ -54,7 +54,7 @@ class ServiceLifecycle
 
             return false;
         }
-echo 'App info: ' . $appInfo->revision . "\n";
+        echo 'App info: ' . $appInfo->revision . "\n";
         try {
             $fs = $this->sourceResolver->filesystemForVersion($appInfo);
         } catch (AppException $e) {

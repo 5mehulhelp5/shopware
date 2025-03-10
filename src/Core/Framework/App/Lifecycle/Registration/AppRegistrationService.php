@@ -139,6 +139,9 @@ class AppRegistrationService
             throw AppException::registrationFailed($appName, 'The app server provided no proof');
         }
 
+        echo $handshake->fetchAppProof() . "\n";
+        echo trim($proof) . "\n";
+
         if (!hash_equals($handshake->fetchAppProof(), trim($proof))) {
             throw AppException::registrationFailed($appName, 'The app server provided an invalid proof');
         }
