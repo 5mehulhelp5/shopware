@@ -25,6 +25,7 @@ class ServiceClient
 
     public function downloadAppZipForVersion(string $zipUrl, string $destination): AppInfo
     {
+        echo "Downloading app zip from: " . $zipUrl . "\n";
         $response = $this->client->request('GET', $zipUrl, [
             'headers' => [
                 'Accept' => 'application/zip',
@@ -38,6 +39,8 @@ class ServiceClient
 
     public function latestAppInfo(): AppInfo
     {
+        echo "Getting latest app info from: " . $this->entry->host . $this->entry->appEndpoint . "\n";
+        echo "Shopware version: " . $this->shopwareVersion . "\n";
         $response = $this->client->request('GET', $this->entry->appEndpoint, [
             'headers' => [
                 'Accept' => 'application/json',
