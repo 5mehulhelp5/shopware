@@ -44,7 +44,7 @@ class InstallerKernel extends HttpKernel
         // @codeCoverageIgnoreEnd
 
         $version = VersionParser::parseShopwareVersion($version);
-        $this->shopwareVersion = '6.6.10.2';
+        $this->shopwareVersion = $version['version'];
         $this->shopwareVersionRevision = $version['revision'];
     }
 

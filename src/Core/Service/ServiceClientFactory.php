@@ -22,10 +22,11 @@ class ServiceClientFactory
     public function __construct(
         private readonly HttpClientInterface $client,
         private readonly ServiceRegistryClient $serviceRegistryClient,
-        private readonly string $shopwareVersion,
+        private string $shopwareVersion,
         private readonly AuthMiddleware $authMiddleware,
         private readonly AppPayloadServiceHelper $appPayloadServiceHelper,
     ) {
+        $this->shopwareVersion = '6.6.10.2';
     }
 
     public function newFor(ServiceRegistryEntry $entry): ServiceClient
