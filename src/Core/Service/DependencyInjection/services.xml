@@ -43,7 +43,7 @@
         <service id="Shopware\Core\Service\ServiceClientFactory">
             <argument type="service" id="Symfony\Contracts\HttpClient\HttpClientInterface"/>
             <argument type="service" id="Shopware\Core\Service\ServiceRegistryClient"/>
-            <argument>%kernel.shopware_version%</argument>
+            <argument>6.6.10.2</argument>
             <argument type="service" id="shopware.app_system.guzzle.middleware"/>
             <argument type="service" id="Shopware\Core\Framework\App\Payload\AppPayloadServiceHelper"/>
         </service>
