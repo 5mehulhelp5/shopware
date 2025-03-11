@@ -316,7 +316,7 @@ class Kernel extends HttpKernel
             $parameters,
             [
                 'kernel.cache.hash' => $this->getCacheHash(),
-                'kernel.shopware_version' => $this->shopwareVersion,
+                'kernel.shopware_version' => '6.6.10.2',
                 'kernel.shopware_version_revision' => $this->shopwareVersionRevision,
                 'kernel.shopware_core_dir' => $coreDir,
                 'kernel.plugin_dir' => $pluginDir,
