@@ -25,6 +25,16 @@ export default class SpatialArViewerPlugin extends Plugin {
     public static options: object;
 
     async init() {
+        console.log('SpatialArViewerPlugin init');
+        this.el.addEventListener('click', () => {
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            console.log('Launching AR in DIVE...');
+            window.DIVE.Communication.PerformAction('LAUNCH_AR', {});
+            // this.startARView().then();
+        });
+
+        return;
+
         await loadThreeJs();
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -46,10 +56,7 @@ export default class SpatialArViewerPlugin extends Plugin {
             this.onReady();
         });
 
-        this.el.addEventListener('click', () => {
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            this.startARView().then();
-        });
+
     }
 
     public async startARView(): Promise<void> {
@@ -88,6 +95,8 @@ export default class SpatialArViewerPlugin extends Plugin {
             }
             return;
         }
+
+        return;
 
         if (await supportWebXR()) {
             this.startWebXRView();
