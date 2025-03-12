@@ -61,6 +61,8 @@ export default class SpatialGallerySliderViewerPlugin extends SpatialBaseViewerP
             backgroundColor: 0xff00ff,
          });
 
+        window.DIVE = dive;
+
         // this.el = dive.Canvas;
         // const parent = this.el.parentElement;
         // console.log('parent', parent);
@@ -71,7 +73,7 @@ export default class SpatialGallerySliderViewerPlugin extends SpatialBaseViewerP
 
         return;
 
-        await loadThreeJs();
+        1
 
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.sliderIndex = Number(this.options.sliderPosition);
