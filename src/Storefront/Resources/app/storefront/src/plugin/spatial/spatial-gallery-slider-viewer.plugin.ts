@@ -52,14 +52,15 @@ export default class SpatialGallerySliderViewerPlugin extends SpatialBaseViewerP
 
         const modelUrl: string = this.options.modelUrl;
 
+        console.log('Starting 3D experience with DIVE...');
         const dive = DIVE.QuickView(modelUrl, {
             renderer: {
                 canvas: this.el as HTMLCanvasElement,
             }
         });
-        dive.Communication.PerformAction('UPDATE_SCENE', {
-            backgroundColor: 0xff00ff,
-         });
+        // dive.Communication.PerformAction('UPDATE_SCENE', {
+        //     backgroundColor: 0xff00ff,
+        //  });
 
         window.DIVE = dive;
 
