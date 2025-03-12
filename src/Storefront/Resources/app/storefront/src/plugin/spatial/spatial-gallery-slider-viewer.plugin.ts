@@ -7,6 +7,7 @@ import SpatialMovementNoteUtil from './utils/spatial-movement-note-util';
 import { type Object3D } from 'three';
 import SpatialLightCompositionUtil from './utils/composition/spatial-light-composition-util';
 import { loadThreeJs } from './utils/spatial-threejs-load-util';
+import { DIVE } from '@shopware-ag/dive';
 
 /**
  * @package innovation
@@ -14,6 +15,16 @@ import { loadThreeJs } from './utils/spatial-threejs-load-util';
  * @experimental stableVersion:v6.8.0 feature:SPATIAL_BASES
  */
 export default class SpatialGallerySliderViewerPlugin extends SpatialBaseViewerPlugin {
+
+    private options: {
+        modelUrl: string;
+        sliderPosition: string;
+        lightIntensity: string;
+    } = {
+        modelUrl: '',
+        sliderPosition: '',
+        lightIntensity: '1.0',
+    };
 
     private spatialProductSliderRenderUtil: SpatialProductSliderRenderUtil | undefined;
     private spatialCanvasSizeUpdateUtil: SpatialCanvasSizeUpdateUtil | undefined;
@@ -33,11 +44,35 @@ export default class SpatialGallerySliderViewerPlugin extends SpatialBaseViewerP
      * does not initialize the 3d scene
      */
     async init() {
-        await loadThreeJs();
+        // await loadDIVE();
 
         if (!this.el) {
             return;
         }
+
+        const modelUrl: string = this.options.modelUrl;
+
+        const dive = DIVE.QuickView(modelUrl, {
+            renderer: {
+                canvas: this.el as HTMLCanvasElement,
+            }
+        });
+        dive.Communication.PerformAction('UPDATE_SCENE', {
+            backgroundColor: 0xff00ff,
+         });
+
+        // this.el = dive.Canvas;
+        // const parent = this.el.parentElement;
+        // console.log('parent', parent);
+        // parent!.appendChild(dive.Canvas);
+        this.rendering = true;
+        this.canvas = this.el as HTMLCanvasElement;
+        this.setReady(true);
+
+        return;
+
+        await loadThreeJs();
+
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         this.sliderIndex = Number(this.options.sliderPosition);
 

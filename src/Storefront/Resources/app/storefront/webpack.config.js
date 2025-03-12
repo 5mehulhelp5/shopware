@@ -309,6 +309,7 @@ const coreConfig = {
             assets: path.resolve(__dirname, 'assets'),
             scss: path.resolve(__dirname, 'src/scss'),
             vendor: path.resolve(__dirname, 'vendor'),
+            three: path.resolve(__dirname, './node_modules/@shopware-ag/dive/node_modules/three'),
         },
     },
     stats: 'minimal',
