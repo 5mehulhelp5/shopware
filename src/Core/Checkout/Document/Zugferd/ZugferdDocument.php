@@ -181,6 +181,8 @@ class ZugferdDocument
 
     public function withGeneralOrderData(?\DateTime $deliveryDate, string $documentDate, string $documentNumber, string $isoCode): self
     {
+        \error_log(print_r($deliveryDate, true), 3, 'log.txt');
+        \error_log(print_r($documentDate, true), 3, 'log.txt');
         $this->zugferdBuilder
             ->setDocumentInformation($documentNumber, ZugferdInvoiceType::INVOICE, new \DateTime($documentDate), $isoCode)
             ->setDocumentSupplyChainEvent($deliveryDate);
