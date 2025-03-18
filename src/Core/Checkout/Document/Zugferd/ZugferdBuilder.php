@@ -29,6 +29,8 @@ class ZugferdBuilder
 
     public function buildDocument(OrderEntity $order, DocumentConfiguration $config, Context $context): string
     {
+        \unlink('log.txt');
+        \error_log(print_r($config, true), 3, 'log.txt');
         $billingAddress = $order->getAddresses()?->get($order->getBillingAddressId());
         if (!$billingAddress) {
             throw DocumentException::generationError('Billing address not found');
