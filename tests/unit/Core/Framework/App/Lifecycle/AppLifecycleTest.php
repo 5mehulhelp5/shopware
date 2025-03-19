@@ -192,7 +192,7 @@ class AppLifecycleTest extends TestCase
             $this->getSourceResolver(__DIR__ . '/../_fixtures/manifest.xml')
         );
 
-        $appLifecycle->install($manifest, new AppInstallParameters(activate: false), Context::createDefaultContext());
+        $appLifecycle->install($manifest, new AppInstallParameters(false), Context::createDefaultContext());
 
         static::assertCount(1, $appRepository->upserts[0]);
         static::assertSame('test', $appRepository->upserts[0][0]['name']);
