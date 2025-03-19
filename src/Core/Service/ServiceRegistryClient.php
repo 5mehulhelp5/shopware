@@ -22,7 +22,7 @@ class ServiceRegistryClient implements ResetInterface
         private string $registryUrl,
         private readonly HttpClientInterface $client,
     ) {
-        $this->registryUrl = "https://raw.githubusercontent.com/nam4am/services/refs/heads/main/service.json";
+        //$this->registryUrl = "https://raw.githubusercontent.com/nam4am/services/refs/heads/main/service.json";
     }
 
     public function get(string $name): ServiceRegistryEntry
