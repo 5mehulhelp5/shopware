@@ -1,0 +1,142 @@
+.cms-block-image-carousel {
+    --sw-cms-element-carousel-height: 450px;
+
+    overflow: hidden;
+}
+
+.cms-block-image-carousel-inner {
+    position: relative;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    height: var(--sw-cms-element-carousel-height);
+    display: flex;
+
+    // Scroll snap
+    overscroll-behavior-x: contain;
+    -ms-scroll-snap-type: x mandatory;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.cms-block-image-carousel-item {
+    scroll-snap-align: start;
+    flex: none;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.cms-element-carousel-items {
+    position: relative;
+}
+
+.cms-element-carousel-arrow {
+    position: absolute;
+    border: 1px solid var(--#{$prefix}border-color);
+    background: var(--#{$prefix}body-bg);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--#{$prefix}border-radius-pill);
+    filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
+    transition: all 0.2s ease-in-out;
+    //left: 0;
+
+    .icon {
+        color: inherit;
+    }
+
+    &:hover {
+        background: var(--#{$prefix}gray-100);
+        color: var(--#{$prefix}primary);
+        border-color: var(--#{$prefix}primary);
+    }
+
+    top: 50%;
+    transform: translateY(calc(-50% - 20px));
+
+    &.left {
+        left: $grid-gutter-width;
+    }
+
+    &.right {
+        right: $grid-gutter-width;
+    }
+}
+
+.cms-block-image-carousel-thumbnails {
+    max-height: var(--sw-cms-element-carousel-height);
+    overflow-x: hidden;
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+        border-radius: var(--#{$prefix}border-radius-pill);
+    }
+
+    &::-webkit-scrollbar-track-piece  {
+        background-color: var(--#{$prefix}gray-200);
+        border-radius: var(--#{$prefix}border-radius-pill);
+    }
+
+    &::-webkit-scrollbar-thumb:vertical {
+        height: 30px;
+        background-color: var(--#{$prefix}gray-600);
+        border-radius: var(--#{$prefix}border-radius-pill);
+    }
+}
+
+.cms-block-image-carousel-thumbnail-item {
+    width: 70px;
+    height: 70px;
+    border: 1px solid var(--#{$prefix}border-color);
+    padding: 0.3rem;
+    margin-bottom: $spacer-sm;
+    display: block;
+
+    img {
+        display: block;
+        max-width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+.cms-block-image-carousel-navigation {
+    display: flex;
+    justify-content: center;
+    padding: $spacer;
+    gap: 0.2rem;
+}
+
+.cms-block-image-carousel-navigation-item {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background: var(--#{$prefix}gray-600);
+    border-radius: var(--#{$prefix}border-radius-pill);
+    transition: width 0.15s ease-in-out, background 0.15s ease-in-out;
+
+    &:hover {
+        background: var(--#{$prefix}primary);
+    }
+
+    &.active {
+        background: var(--#{$prefix}primary);
+        width: 24px;
+    }
+}
