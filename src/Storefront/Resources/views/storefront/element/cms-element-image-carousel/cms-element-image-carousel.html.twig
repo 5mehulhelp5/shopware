@@ -1,14 +1,27 @@
+{#
+    Carousel CMS element
+    ===========================================
+    @experimental
+    @private
+
+    A new carousel (aka slider) component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
+
+    Properties:
+    * carouselItems (required) - The items that will be shown in the carousel, for example images.
+    * showArrowNav (optional) - Show prev and next buttons with arrows.
+    * showDotNav (optional) - Show navigation dots underneath the carousel items.
+#}
+
 <div class="cms-block-image-carousel row" data-sw-carousel="true">
 
     {#
         Thumbnail previews
+        ===========================================
     #}
     <div class="cms-block-image-carousel-thumbnails col-md-auto d-none d-md-block">
-        {% for image in element.data.sliderItems %}
-            <a href="#carousel-item-{{ loop.index }}"
-               data-slide-to="{{ loop.index }}"
-               class="cms-block-image-carousel-thumbnail-item">
-                {% sw_thumbnails 'gallery-slider-image-thumbnails' with {
+        {%- for image in element.data.sliderItems -%}
+            <a href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}" class="cms-block-image-carousel-thumbnail-item{% if loop.index == 1 %} active{% endif %}">
+                {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
                     media: image.media,
                     sizes: {
                         default: '70px'
@@ -16,15 +29,16 @@
                     attributes: {
                         loading: 'lazy',
                     }
-                } %}
+                } -%}
             </a>
-        {% endfor %}
+        {%- endfor -%}
     </div>
 
-    {#
-        Carousel items
-    #}
     <div class="col-md cms-element-carousel-items">
+        {#
+            Carousel items
+            ===========================================
+        #}
         <div class="cms-block-image-carousel-inner">
             {% for image in element.data.sliderItems %}
                 <div class="cms-block-image-carousel-item" id="carousel-item-{{ loop.index }}">
@@ -33,104 +47,30 @@
             {% endfor %}
         </div>
 
-
+        {#
+            Arrow navigation
+            ===========================================
+        #}
         <div class="cms-element-carousel-arrows">
-            <button class="cms-element-carousel-arrow left" type="button">{% sw_icon 'arrow-left' style { size: 'sm' } %}</button>
-            <button class="cms-element-carousel-arrow right" type="button">{% sw_icon 'arrow-right' style { size: 'sm' } %}</button>
+            <button class="cms-element-carousel-arrow prev" type="button">
+                {% sw_icon 'arrow-left' style { size: 'sm' } %}
+            </button>
+
+            <button class="cms-element-carousel-arrow next" type="button">
+                {% sw_icon 'arrow-right' style { size: 'sm' } %}
+            </button>
         </div>
 
         {#
-            Dot-Navigation
+            Dot navigation
+            ===========================================
         #}
         <div class="cms-block-image-carousel-navigation">
-            {% for image in element.data.sliderItems %}
-                <a class="cms-block-image-carousel-navigation-item {% if loop.index == 1 %} active{% endif %}"
-                   href="#carousel-item-{{ loop.index }}"
-                   data-slide-to="{{ loop.index }}">
+            {%- for image in element.data.sliderItems -%}
+                <a class="cms-block-image-carousel-navigation-item{% if loop.index == 1 %} active{% endif %}" href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}">
                     <span class="visually-hidden">{{ loop.index }}</span>
                 </a>
-            {% endfor %}
+            {%- endfor -%}
         </div>
     </div>
-
-    <script defer>
-        return;
-        const dots = document.querySelectorAll('.cms-block-image-carousel-navigation-item');
-        const dotsWrapper = document.querySelector('.cms-block-image-carousel-navigation');
-
-        const thumbnails = document.querySelectorAll('.cms-block-image-carousel-thumbnail-item');
-
-        let slideIndex = 1;
-
-        function updateActiveDot() {
-            dots.forEach((dot) => {
-                dot.classList.remove('active');
-            });
-
-            const activeDot = dotsWrapper.querySelector(`[data-slide-to="${slideIndex}"]`);
-            activeDot.classList.add('active');
-        }
-
-        document.querySelector('.cms-element-carousel-arrow.right').addEventListener('click', () => {
-
-            slideIndex = slideIndex + 1;
-
-            const targetEl = document.querySelector(`#carousel-item-${slideIndex}`);
-
-            if (targetEl) {
-                targetEl.scrollIntoView({block: "nearest", inline: "nearest"});
-                updateActiveDot();
-            }
-        });
-
-        document.querySelector('.cms-element-carousel-arrow.left').addEventListener('click', (e) => {
-            if (slideIndex > 1) {
-                slideIndex = slideIndex - 1;
-            }
-
-            const targetEl = document.querySelector(`#carousel-item-${slideIndex}`);
-
-            if (targetEl) {
-                targetEl.scrollIntoView({block: "nearest", inline: "nearest"});
-                updateActiveDot();
-            }
-        });
-
-        dots.forEach((dot) => {
-            dot.addEventListener('click', (event) => {
-                event.preventDefault();
-                const targetIndex = Number(event.target.dataset.slideTo);
-                const targetEl = document.querySelector(`#carousel-item-${targetIndex}`);
-
-                slideIndex = targetIndex;
-
-                if (targetEl) {
-                    targetEl.scrollIntoView({block: "nearest", inline: "nearest"});
-                }
-
-                updateActiveDot();
-            });
-        });
-
-        thumbnails.forEach((dot) => {
-            dot.addEventListener('click', (event) => {
-                event.preventDefault();
-                const targetIndex = Number(event.currentTarget.dataset.slideTo);
-
-                const targetEl = document.querySelector(`#carousel-item-${targetIndex}`);
-
-                slideIndex = targetIndex;
-
-                if (targetEl) {
-                    targetEl.scrollIntoView({block: "nearest", inline: "nearest"});
-                }
-
-                updateActiveDot();
-            });
-        });
-
-
-    </script>
-
 </div>
-

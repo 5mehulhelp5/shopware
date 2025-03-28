@@ -4,6 +4,10 @@
     overflow: hidden;
 }
 
+/*
+ * Carousel items
+ * ===========================================
+ */
 .cms-block-image-carousel-inner {
     position: relative;
     overflow-x: scroll;
@@ -44,6 +48,10 @@
     position: relative;
 }
 
+/*
+ * Arrow navigation
+ * ===========================================
+ */
 .cms-element-carousel-arrow {
     position: absolute;
     border: 1px solid var(--#{$prefix}border-color);
@@ -53,10 +61,19 @@
     border-radius: var(--#{$prefix}border-radius-pill);
     filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
     transition: all 0.2s ease-in-out;
-    //left: 0;
+    top: 50%;
+    transform: translateY(calc(-50% - 20px));
 
     .icon {
         color: inherit;
+    }
+
+    &.prev {
+        left: $grid-gutter-width;
+    }
+
+    &.next {
+        right: $grid-gutter-width;
     }
 
     &:hover {
@@ -64,19 +81,12 @@
         color: var(--#{$prefix}primary);
         border-color: var(--#{$prefix}primary);
     }
-
-    top: 50%;
-    transform: translateY(calc(-50% - 20px));
-
-    &.left {
-        left: $grid-gutter-width;
-    }
-
-    &.right {
-        right: $grid-gutter-width;
-    }
 }
 
+/*
+ * Thumbnail navigation
+ * ===========================================
+ */
 .cms-block-image-carousel-thumbnails {
     max-height: var(--sw-cms-element-carousel-height);
     overflow-x: hidden;
@@ -108,6 +118,11 @@
     margin-bottom: $spacer-sm;
     display: block;
 
+    &.active {
+        border-color: var(--#{$prefix}primary);
+        box-shadow: inset 0 0 0 1px var(--#{$prefix}primary);
+    }
+
     img {
         display: block;
         max-width: 100%;
@@ -116,6 +131,10 @@
     }
 }
 
+/*
+ * Dot navigation
+ * ===========================================
+ */
 .cms-block-image-carousel-navigation {
     display: flex;
     justify-content: center;

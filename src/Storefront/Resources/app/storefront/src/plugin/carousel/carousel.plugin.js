@@ -1,47 +1,142 @@
+/**
+ * Carousel CMS element JS-plugin
+ * ===========================================
+ * @experimental
+ * @private
+ *
+ * A new carousel (aka slider) component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
+ */
 export default class CarouselPlugin extends window.PluginBaseClass {
-    init() {
-        console.log('CarouselPlugin initialized');
 
+    static options = {
+
+    };
+
+    /**
+     * Plugin constructor and collecting of needed elements.
+     * @returns void
+     */
+    init() {
         this._slideIndex = 1;
 
-        this._dots = document.querySelectorAll('.cms-block-image-carousel-navigation-item');
-        this._dotsWrapper = document.querySelector('.cms-block-image-carousel-navigation');
-        this._thumbnails = document.querySelectorAll('.cms-block-image-carousel-thumbnail-item');
+        this._dots = this.el.querySelectorAll('.cms-block-image-carousel-navigation-item');
+        this._dotsWrapper = this.el.querySelector('.cms-block-image-carousel-navigation');
+        this._thumbnailsContainer = this.el.querySelector('.cms-block-image-carousel-thumbnails');
+        this._thumbnails = this.el.querySelectorAll('.cms-block-image-carousel-thumbnail-item');
+        this._carouselItems = this.el.querySelectorAll('.cms-block-image-carousel-item');
+        this._prevButton = this.el.querySelector('.cms-element-carousel-arrow.prev');
+        this._nextButton = this.el.querySelector('.cms-element-carousel-arrow.next');
+        this._totalItemCount = Array.from(this._carouselItems).length;
 
         this._registerEvents();
     }
 
+    /**
+     * @private
+     * @returns void
+     */
     _registerEvents() {
-        this._dots.forEach((dot) => {
-            dot.addEventListener('click', this._slideTo.bind(this));
-        });
-
-        this._thumbnails.forEach((thumb) => {
-            thumb.addEventListener('click', this._slideTo.bind(this));
-        });
+        this._dots.forEach(dot => dot.addEventListener('click', this._slideTo.bind(this)));
+        this._thumbnails.forEach(thumb => thumb.addEventListener('click', this._slideTo.bind(this)));
+        this._nextButton.addEventListener('click', this._slideNext.bind(this));
+        this._prevButton.addEventListener('click', this._slidePrev.bind(this));
     }
 
+    /**
+     *
+     * @private
+     */
+    _slideNext() {
+        if (this._slideIndex >= this._totalItemCount) {
+            return;
+        }
+
+        this._slideIndex = this._slideIndex + 1;
+
+        this._doSlide(this._slideIndex);
+    }
+
+    _slidePrev() {
+        if (this._slideIndex <= 1) {
+            return;
+        }
+
+        this._slideIndex = this._slideIndex - 1;
+
+        this._doSlide(this._slideIndex);
+    }
+
+    /**
+     * Identify the target carousel item using the data-slide-to="{index}" attribute of the clicked element.
+     *
+     * @private
+     * @param event
+     * @returns void
+     */
     _slideTo(event) {
         event.preventDefault();
-        const targetIndex = Number(event.currentTarget.dataset.slideTo);
-        const targetEl = document.querySelector(`#carousel-item-${targetIndex}`);
 
-        this._slideIndex = targetIndex;
+        this._slideIndex = Number(event.currentTarget.dataset.slideTo);
+
+        this._doSlide(this._slideIndex);
+    }
+
+    /**
+     * Query the target carousel DOM element via the index and id="carousel-item-{index}".
+     * Slide to the target carousel item using native scrolling.
+     *
+     * @private
+     * @param {Number} index
+     * @returns void
+     */
+    _doSlide(index) {
+        const targetEl = this.el.querySelector(`#carousel-item-${index}`);
 
         if (!targetEl) {
             return;
         }
 
-        targetEl.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        this._updateActiveDot();
-    }
-
-    _updateActiveDot() {
-        this._dots.forEach((dot) => {
-            dot.classList.remove('active');
+        targetEl.scrollIntoView({
+            block: 'nearest',
+            inline: 'nearest',
+            behavior: 'smooth',
         });
 
-        const activeDot = this._dotsWrapper.querySelector(`[data-slide-to="${this._slideIndex}"]`);
+        this._updateActiveDot(index);
+        this._updateActiveThumbnail(index);
+    }
+
+    /**
+     * Update the navigation dots active state by the current slideIndex.
+     *
+     * @private
+     * @param {Number} index
+     * @returns void
+     */
+    _updateActiveDot(index) {
+        this._dots.forEach(dot => dot.classList.remove('active'));
+
+        const activeDot = this._dotsWrapper.querySelector(`[data-slide-to="${index}"]`);
         activeDot.classList.add('active');
+    }
+
+    /**
+     * Update the thumbnail preview active state by the current slideIndex.
+     *
+     * @private
+     * @param {Number} index
+     * @returns void
+     */
+    _updateActiveThumbnail(index) {
+        this._thumbnails.forEach(thumb => thumb.classList.remove('active'));
+
+        const activeThumb = this._thumbnailsContainer.querySelector(`[data-slide-to="${index}"]`);
+        activeThumb.classList.add('active');
+
+        activeThumb.scrollIntoView({
+            block: 'nearest',
+            inline: 'nearest',
+            behavior: 'smooth',
+        });
     }
 }
