@@ -5,14 +5,12 @@
 
         <div class="col-lg-7 product-detail-media" data-cms-element-id="{{ element.id }}">
             {% block block_gallery_buybox_column_left_inner %}
-{#                {% sw_include '@Storefront/storefront/element/cms-element-' ~ element.type ~ '.html.twig' ignore missing#}
-{#                    with {#}
-{#                    isProduct: config.sliderItems.value == 'product.media' and config.sliderItems.source == 'mapped',#}
-{#                    startIndexThumbnails: 1,#}
-{#                    startIndexSlider: 1#}
-{#                } %}#}
-
-                {% sw_include '@Storefront/storefront/element/cms-element-image-carousel/cms-element-image-carousel.html.twig' ignore missing %}
+                {% sw_include '@Storefront/storefront/element/cms-element-' ~ element.type ~ '.html.twig' ignore missing
+                    with {
+                    isProduct: config.sliderItems.value == 'product.media' and config.sliderItems.source == 'mapped',
+                    startIndexThumbnails: 1,
+                    startIndexSlider: 1
+                } %}
             {% endblock %}
         </div>
     {% endblock %}
