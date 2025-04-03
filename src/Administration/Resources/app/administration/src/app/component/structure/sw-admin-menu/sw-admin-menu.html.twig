@@ -49,7 +49,7 @@
                     <!-- eslint-disable sw-deprecation-rules/no-twigjs-blocks -->
                     {% block sw_admin_menu_navigation_main_items %}
                     <sw-admin-menu-item
-                        v-for="(entry, index) in mainMenuEntries"
+                        v-for="entry in mainMenuEntries"
                         :key="`${entry.id || entry.path}-${entry.children.length}`"
                         :tabindex="0"
                         :class="{ 'is--entry-expanded': currentExpandedMenuEntries.includes(entry) }"
