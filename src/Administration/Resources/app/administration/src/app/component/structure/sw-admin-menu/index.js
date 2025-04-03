@@ -444,7 +444,7 @@ The admin menu only supports up to three levels of nesting.`,
                 window.clearTimeout(this.subMenuTimer);
             }
 
-            this.deactivatePreviousMenuItem();
+            this.activeEntry = [];
         },
 
         onMenuItemEnter(entry, event, parentEntries) {
@@ -462,7 +462,7 @@ The admin menu only supports up to three levels of nesting.`,
 
             // We don't have children, we don't need to do anything here.
             if (!target.classList.contains('navigation-list-item__has-children')) {
-                this.deactivatePreviousMenuItem();
+                this.activeEntry = [];
                 return;
             }
 
@@ -514,16 +514,12 @@ The admin menu only supports up to three levels of nesting.`,
 
         activateMenuItem(entry, target, parentEntries) {
             // Remove previous flyout enabled
-            this.deactivatePreviousMenuItem();
+            this.activeEntry = [];
 
             if (this.subMenuTimer) {
                 window.clearTimeout(this.subMenuTimer);
             }
             this.activeEntry = { entry, target, parentEntries };
-        },
-
-        deactivatePreviousMenuItem() {
-            this.activeEntry = [];
         },
 
         getPolygonFromMenuItem(element, entry) {
