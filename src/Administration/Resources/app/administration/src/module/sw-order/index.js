@@ -182,12 +182,7 @@ Module.register('sw-order', {
             icon: 'regular-shopping-bag',
             position: 30,
             privilege: 'order.viewer',
-        },
-        {
             path: 'sw.order.index',
-            label: 'sw-order.general.mainMenuItemList',
-            parent: 'sw-order',
-            privilege: 'order.viewer',
         },
     ],
 

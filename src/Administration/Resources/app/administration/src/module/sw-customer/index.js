@@ -122,14 +122,7 @@ Module.register('sw-customer', {
             icon: 'regular-users',
             position: 40,
             privilege: 'customer.viewer',
-        },
-        {
             path: 'sw.customer.index',
-            label: 'sw-customer.general.mainMenuItemList',
-            color: '#F88962',
-            icon: 'regular-users',
-            parent: 'sw-customer',
-            privilege: 'customer.viewer',
         },
     ],
 
