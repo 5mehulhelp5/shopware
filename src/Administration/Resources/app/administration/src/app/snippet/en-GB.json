@@ -148,7 +148,6 @@
     },
     "sw-admin-menu": {
       "linkLogout": "Logout",
-      "linkMinimizeMenu": "Collapse menu",
       "textShopwareAdmin": "Shopware Administration",
       "textProjectName": "Administration",
       "administrator": "Administrator",

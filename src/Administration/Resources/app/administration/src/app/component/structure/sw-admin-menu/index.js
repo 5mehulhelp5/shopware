@@ -149,10 +149,6 @@ The admin menu only supports up to three levels of nesting.`,
             return tree.convertToTree();
         },
 
-        sidebarCollapseIcon() {
-            return this.isExpanded ? 'regular-chevron-circle-left' : 'regular-chevron-circle-right';
-        },
-
         userActionsToggleIcon() {
             return this.isUserActionsActive ? 'regular-chevron-down-xs' : 'regular-chevron-up-xs';
         },
@@ -315,16 +311,6 @@ The admin menu only supports up to three levels of nesting.`,
 
         isActiveItem(menuItem) {
             return this.isExpanded && menuItem.classList.contains('router-link-active');
-        },
-
-        onToggleSidebar() {
-            if (this.isExpanded) {
-                this.collapseAdminMenu();
-            } else {
-                this.expandAdminMenu();
-            }
-
-            this.toggleSidebar();
         },
 
         toggleSidebar() {

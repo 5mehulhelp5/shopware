@@ -271,41 +271,6 @@ $sw-admin-menu-active-text: $color-white;
         font-weight: bold;
     }
 
-    .sw-admin-menu__toggle {
-        color: $sw-admin-menu-color-text-primary;
-        display: block;
-        padding: 20px 32px;
-        text-decoration: none;
-        font-size: $font-size-xs;
-        line-height: $line-height-md;
-        width: 100%;
-        cursor: pointer;
-        white-space: nowrap;
-        text-align: left;
-        background: none;
-        border: 0 none;
-        outline: none;
-
-        @media screen and (max-width: 500px) {
-            display: none;
-        }
-
-        .mt-icon {
-            margin: 0 16px 0 0;
-            vertical-align: middle;
-            position: relative;
-            top: -2px;
-        }
-
-        &:hover {
-            color: $sw-admin-menu-active-text;
-
-            .mt-icon {
-                color: $sw-admin-menu-active-text;
-            }
-        }
-    }
-
     .sw-admin-menu__footer {
         order: 3;
     }
