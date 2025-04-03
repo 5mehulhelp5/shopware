@@ -50,11 +50,6 @@ Component.register('sw-admin-menu', {
             activeEntry: null,
             isOffCanvasShown: false,
             isUserActionsActive: false,
-            flyoutEntries: [],
-            lastFlyoutEntries: [],
-            flyoutStyle: {},
-            flyoutColor: '',
-            flyoutLabel: '',
             subMenuOpen: false,
             scrollbarOffset: '',
             isUserLoading: true,
@@ -229,12 +224,10 @@ The admin menu only supports up to three levels of nesting.`,
 
     mounted() {
         this.mountedComponent();
-        document.addEventListener('mouseleave', this.onFlyoutLeave);
     },
 
     beforeUnmount() {
         document.removeEventListener('mousemove', this.onMouseMoveDocument);
-        document.removeEventListener('mouseleave', this.onFlyoutLeave);
     },
 
     methods: {
@@ -342,11 +335,9 @@ The admin menu only supports up to three levels of nesting.`,
                     ['router-link-active'],
                     ignoreElementsList,
                 );
-                this.onFlyoutLeave();
             }
 
             this.isUserActionsActive = false;
-            this.flyoutEntries = [];
         },
 
         onToggleUserActions() {
@@ -420,7 +411,6 @@ The admin menu only supports up to three levels of nesting.`,
                 Array.from(this.$el.querySelectorAll('.sw-admin-menu__navigation-list-item')),
                 [
                     'is--entry-expanded',
-                    'is--flyout-expanded',
                 ],
                 [
                     target,
@@ -447,13 +437,6 @@ The admin menu only supports up to three levels of nesting.`,
                 firstChild.classList.add('router-link-active');
                 target.classList.add('is--entry-expanded');
             }
-
-            target.classList.remove('is--flyout-expanded');
-
-            // Clear flyout entries if clicked
-            if (this.flyoutEntries.length) {
-                this.flyoutEntries = [];
-            }
         },
 
         onMenuLeave() {
@@ -462,7 +445,6 @@ The admin menu only supports up to three levels of nesting.`,
             }
 
             this.deactivatePreviousMenuItem();
-            this.flyoutEntries = [];
         },
 
         onMenuItemEnter(entry, event, parentEntries) {
@@ -481,48 +463,10 @@ The admin menu only supports up to three levels of nesting.`,
             // We don't have children, we don't need to do anything here.
             if (!target.classList.contains('navigation-list-item__has-children')) {
                 this.deactivatePreviousMenuItem();
-                this.flyoutEntries = [];
                 return;
             }
 
             this.possiblyActivate(entry, target, parentEntries);
-        },
-
-        /* istanbul ignore next - is covered by E2E test */
-        onSubMenuItemEnter(entry, event) {
-            const target = event.target;
-            const parent = target.closest('.is--entry-expanded');
-
-            if (!parent) {
-                return;
-            }
-
-            this.removeClassesFromElements(
-                Array.from(parent.querySelectorAll('.sw-admin-menu__navigation-list-item')),
-                ['is--flyout-enabled'],
-                [target],
-            );
-
-            if (!this.getChildren(entry).length) {
-                this.flyoutEntries = [];
-                return;
-            }
-
-            target.classList.add('is--flyout-enabled');
-            this.flyoutStyle = {
-                top: `${target.getBoundingClientRect().top - document.getElementById('app').getBoundingClientRect().top}px`,
-            };
-
-            this.flyoutEntries = this.getChildren(entry);
-
-            const parentEntry = this.mainMenuEntries.find((item) => {
-                return item.id === entry.parent || item.path === entry.parent;
-            });
-
-            if (!parentEntry) {
-                return;
-            }
-            this.flyoutColor = parentEntry.color;
         },
 
         getChildren(entry) {
@@ -569,29 +513,16 @@ The admin menu only supports up to three levels of nesting.`,
         },
 
         activateMenuItem(entry, target, parentEntries) {
-            if (this.getChildren(entry)) {
-                this.flyoutEntries = this.getChildren(entry);
-            }
-
-            this.flyoutStyle = {
-                top: `${target.getBoundingClientRect().top - document.getElementById('app').getBoundingClientRect().top}px`,
-            };
-
             // Remove previous flyout enabled
             this.deactivatePreviousMenuItem();
-            target.classList.add('is--flyout-enabled');
 
             if (this.subMenuTimer) {
                 window.clearTimeout(this.subMenuTimer);
             }
-            this.flyoutColor = entry.color;
             this.activeEntry = { entry, target, parentEntries };
         },
 
         deactivatePreviousMenuItem() {
-            if (this.activeEntry && this.activeEntry.target) {
-                this.activeEntry.target.classList.remove('is--flyout-enabled');
-            }
             this.activeEntry = [];
         },
 
@@ -665,11 +596,6 @@ The admin menu only supports up to three levels of nesting.`,
                 return 0;
             }
 
-            // If there is no flyout already active, then activate immediately.
-            if (!this.flyoutEntries.length) {
-                return 0;
-            }
-
             if (
                 this.lastDelayLocation &&
                 currentMousePosition.x === this.lastDelayLocation.x &&
@@ -692,18 +618,6 @@ The admin menu only supports up to three levels of nesting.`,
             return 0;
         },
 
-        onFlyoutEnter() {
-            if (this.subMenuTimer) {
-                window.clearTimeout(this.subMenuTimer);
-            }
-        },
-
-        onFlyoutLeave() {
-            this.deactivatePreviousMenuItem();
-            this.activeEntry = null;
-            this.flyoutEntries = [];
-        },
-
         removeClassesFromElements(elements, classList, ignoreElementsList = []) {
             elements.forEach((element) => {
                 if (ignoreElementsList.includes(element)) {
@@ -711,17 +625,6 @@ The admin menu only supports up to three levels of nesting.`,
                 }
                 element.classList.remove(classList);
             });
-        },
-
-        isFirstPluginInMenuEntries(entry, menuEntries) {
-            const firstPluginEntry = menuEntries.find((menuEntry) => {
-                return menuEntry.moduleType === 'plugin';
-            });
-
-            if (!firstPluginEntry) {
-                return false;
-            }
-            return types.isEqual(entry, firstPluginEntry);
         },
     },
 });
