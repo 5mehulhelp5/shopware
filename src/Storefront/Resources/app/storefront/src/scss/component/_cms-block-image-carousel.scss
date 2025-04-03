@@ -117,6 +117,7 @@
     padding: 0.3rem;
     margin-bottom: $spacer-sm;
     display: block;
+    transition: all 0.3s ease-in-out;
 
     &.active {
         border-color: var(--#{$prefix}primary);
