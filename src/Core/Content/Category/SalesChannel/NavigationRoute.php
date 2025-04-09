@@ -339,27 +339,19 @@ class NavigationRoute extends AbstractNavigationRoute
                             $plainUrl = '/navigation/' . $internalLink;
                             break;
                     }
-                } else {
-                    $hasPrefix = false;
-                    
-                    if (strpos($internalLink, '/landingPage/') === 0
-                        || strpos($internalLink, '/navigation/') === 0
-                        || strpos($internalLink, '/detail/') === 0) {
-                        $hasPrefix = true;
-                        $plainUrl = $internalLink;
-                    }
+                } elseif (strpos($internalLink, '/landingPage/') === 0
+                    || strpos($internalLink, '/navigation/') === 0
+                    || strpos($internalLink, '/detail/') === 0) {
+                    $plainUrl = $internalLink;
                 }
             }
             
-            if ($plainUrl !== null) {
-                $seoUrl = $this->seoUrlReplacer->replace($plainUrl, '', $context);
-                
-                if ($seoUrl !== $plainUrl) {
-                    $category->setInternalLink($seoUrl);
-                } else {
-                    $category->setInternalLink($plainUrl);
-                }
+            if ($plainUrl === null) {
+                continue;
             }
+            
+            $seoUrl = $this->seoUrlReplacer->replace($plainUrl, '', $context);
+            $category->setInternalLink($seoUrl !== $plainUrl ? $seoUrl : $plainUrl);
         }
     }
 }
