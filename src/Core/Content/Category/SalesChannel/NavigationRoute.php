@@ -324,39 +324,30 @@ class NavigationRoute extends AbstractNavigationRoute
                 continue;
             }
             
-            $plainUrl = null;
+            $plainUrl = $this->categoryUrlGenerator->generate($category, $context->getSalesChannel());
             
-            if (Uuid::isValid($internalLink)) {
-                switch ($category->getLinkType()) {
-                    case CategoryDefinition::LINK_TYPE_LANDING_PAGE:
-                        $plainUrl = '/landingPage/' . $internalLink;
-                        break;
-                    case CategoryDefinition::LINK_TYPE_PRODUCT:
-                        $plainUrl = '/detail/' . $internalLink;
-                        break;
-                    case CategoryDefinition::LINK_TYPE_CATEGORY:
-                        $plainUrl = '/navigation/' . $internalLink;
-                        break;
-                }
-            } 
-            else {
-                $originalId = $internalLink;
-                $hasPrefix = false;
-                
-                if (strpos($internalLink, '/landingPage/') === 0) {
-                    $originalId = substr($internalLink, strlen('/landingPage/'));
-                    $hasPrefix = true;
-                    $plainUrl = $internalLink;
-                } elseif (strpos($internalLink, '/navigation/') === 0) {
-                    $originalId = substr($internalLink, strlen('/navigation/'));
-                    $hasPrefix = true;
-                    $plainUrl = $internalLink;
-                } elseif (strpos($internalLink, '/detail/') === 0) {
-                    $originalId = substr($internalLink, strlen('/detail/'));
-                    $hasPrefix = true;
-                    $plainUrl = $internalLink;
+            if ($plainUrl === null) {
+                if (Uuid::isValid($internalLink)) {
+                    switch ($category->getLinkType()) {
+                        case CategoryDefinition::LINK_TYPE_LANDING_PAGE:
+                            $plainUrl = '/landingPage/' . $internalLink;
+                            break;
+                        case CategoryDefinition::LINK_TYPE_PRODUCT:
+                            $plainUrl = '/detail/' . $internalLink;
+                            break;
+                        case CategoryDefinition::LINK_TYPE_CATEGORY:
+                            $plainUrl = '/navigation/' . $internalLink;
+                            break;
+                    }
                 } else {
-                    $plainUrl = $this->categoryUrlGenerator->generate($category, $context->getSalesChannel());
+                    $hasPrefix = false;
+                    
+                    if (strpos($internalLink, '/landingPage/') === 0
+                        || strpos($internalLink, '/navigation/') === 0
+                        || strpos($internalLink, '/detail/') === 0) {
+                        $hasPrefix = true;
+                        $plainUrl = $internalLink;
+                    }
                 }
             }
             
@@ -365,7 +356,7 @@ class NavigationRoute extends AbstractNavigationRoute
                 
                 if ($seoUrl !== $plainUrl) {
                     $category->setInternalLink($seoUrl);
-                } elseif (!isset($hasPrefix) || !$hasPrefix) {
+                } else {
                     $category->setInternalLink($plainUrl);
                 }
             }
