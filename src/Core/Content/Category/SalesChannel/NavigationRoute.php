@@ -327,26 +327,6 @@ class NavigationRoute extends AbstractNavigationRoute
             $plainUrl = $this->categoryUrlGenerator->generate($category, $context->getSalesChannel());
             
             if ($plainUrl === null) {
-                if (Uuid::isValid($internalLink)) {
-                    switch ($category->getLinkType()) {
-                        case CategoryDefinition::LINK_TYPE_LANDING_PAGE:
-                            $plainUrl = '/landingPage/' . $internalLink;
-                            break;
-                        case CategoryDefinition::LINK_TYPE_PRODUCT:
-                            $plainUrl = '/detail/' . $internalLink;
-                            break;
-                        case CategoryDefinition::LINK_TYPE_CATEGORY:
-                            $plainUrl = '/navigation/' . $internalLink;
-                            break;
-                    }
-                } elseif (strpos($internalLink, '/landingPage/') === 0
-                    || strpos($internalLink, '/navigation/') === 0
-                    || strpos($internalLink, '/detail/') === 0) {
-                    $plainUrl = $internalLink;
-                }
-            }
-            
-            if ($plainUrl === null) {
                 continue;
             }
             
