@@ -16,8 +16,8 @@
         <component
             class="sw-admin-menu__item"
             :key="item.id"
-            :is="!!item.to ? 'router-link' : 'button'"
-            :to="item?.to ? { name: item.to } : undefined"
+            is="router-link"
+            :to="item.children ? { name: item.children.at(0).to } : { name: item.to }"
             :aria-expanded="item.to ? undefined : idOfExpandedItem === item.id"
             @click="expandItem(item.id)"
         >
