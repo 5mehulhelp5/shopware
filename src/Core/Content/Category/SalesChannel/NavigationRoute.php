@@ -331,7 +331,7 @@ class NavigationRoute extends AbstractNavigationRoute
             }
             
             $seoUrl = $this->seoUrlReplacer->replace($plainUrl, '', $context);
-            $category->setInternalLink($seoUrl !== $plainUrl ? $seoUrl : $plainUrl);
+            $category->setInternalLink($seoUrl);
         }
     }
 }
