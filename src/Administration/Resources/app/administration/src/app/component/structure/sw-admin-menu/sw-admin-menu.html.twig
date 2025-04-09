@@ -1,164 +1,40 @@
-{% block sw_admin_menu %}
-<!-- eslint-disable-next-line vuejs-accessibility/mouse-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
-<aside
-    class="sw-admin-menu"
-    :class="adminMenuClasses"
-    :aria-expanded="isExpanded ? 'true' : 'false'"
-    @mouseleave="onMenuLeave"
->
-
-    {% block sw_admin_menu_header %}
+<div class="sw-admin-menu">
     <div class="sw-admin-menu__header">
+        <svg class="sw-admin-menu__shopware-logo" width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="36" height="36" rx="6" fill="#189EFF"/>
+            <rect x="0.5" y="0.5" width="35" height="35" rx="5.5" stroke="black" stroke-opacity="0.05"/>
+            <path d="M25.1376 27.3704C24.0954 26.5854 22.5582 25.988 20.9316 25.3579C18.9953 24.6078 16.7997 23.7552 15.1513 22.4448C13.2848 20.9578 12.3756 19.0826 12.3756 16.7125C12.3756 14.5844 13.2586 12.7659 14.9289 11.4511C16.8018 9.97712 19.6408 9.19652 23.136 9.19652C24.1019 9.19652 25.0242 9.2554 25.879 9.37314C25.9553 9.38404 26.0272 9.34261 26.0578 9.27502C26.0905 9.20525 26.073 9.12457 26.0163 9.07442C23.8141 7.09241 20.9665 6.0022 18.0011 6.0022C14.7958 6.0022 11.7825 7.2494 9.51485 9.51705C7.24939 11.7825 6 14.7959 6 17.9989C6 21.2041 7.2472 24.2175 9.51485 26.483C11.7803 28.7484 14.7937 29.9978 18.0011 29.9978C20.5914 29.9978 23.0575 29.1845 25.1354 27.6473C25.179 27.6146 25.2052 27.5644 25.2052 27.5099C25.2052 27.4554 25.1812 27.4031 25.1376 27.3704Z" fill="white"/>
+            <path d="M29.9476 16.8912C29.9432 16.8454 29.9214 16.8018 29.8865 16.7735C27.3834 14.6955 25.3578 13.8474 22.8961 13.8474C21.5834 13.8474 20.5761 14.1112 19.9045 14.6301C19.3223 15.0793 19.0149 15.7073 19.0149 16.4421C19.0149 18.5026 21.5333 19.4423 24.4507 20.5304C25.953 21.0907 27.5077 21.6707 28.9337 22.4622C28.9598 22.4775 28.9882 22.484 29.0165 22.484C29.0361 22.484 29.0558 22.4797 29.0754 22.4731C29.1212 22.4557 29.1604 22.4208 29.1779 22.3728C29.723 20.9774 29.9999 19.5056 29.9999 17.9989C29.9977 17.6457 29.9824 17.2728 29.9476 16.8912Z" fill="white"/>
+        </svg>
 
-        {% block sw_admin_menu_header_logo %}
-        <div
-            class="sw-admin-menu__header-logo"
-            role="img"
-        ></div>
-        {% endblock %}
+        <h1 class="sw-admin-menu__shop-name">Acme Inc</h1>
 
-        {% block sw_admin_menu_header_version %}
-        <sw-version class="collapsible-text" />
-        {% endblock %}
+        <p class="sw-admin-menu__version">Shopware Beyond (6.7.1)</p>
     </div>
-    {% endblock %}
 
-    {% block sw_admin_menu_body_container %}
-    <div class="sw-admin-menu__body-container">
-
-        {% block sw_admin_menu_body %}
-        <div
-            ref="swAdminMenuBody"
-            class="sw-admin-menu__body"
-            :style="scrollbarOffsetStyle"
+    <template v-for="item in ITEMS">
+        <component
+            class="sw-admin-menu__item"
+            :key="item.id"
+            :is="!!item.to ? 'router-link' : 'button'"
+            :to="item?.to ? { name: item.to } : undefined"
+            :aria-expanded="item.to ? undefined : idOfExpandedItem === item.id"
+            @click="expandItem(item.id)"
         >
-            {% block sw_admin_menu_navigation_main %}
-            <nav
-                class="sw-admin-menu__navigation"
-                aria-labelledby="mainmenulabel"
+            <mt-icon :name="`regular-${item.icon}`" size="var(--scale-size-16)" aria-hidden="true" />
+
+            <span>{{ item.name }}</span>
+        </component>
+
+        <template v-if="item.children && idOfExpandedItem === item.id">
+            <router-link
+                v-for="child in item.children"
+                :key="child.id" class="sw-admin-menu__item"
+                :to="{ name: child.to }"
+                style="padding-left: calc(10px + 16px + 10px * 1)"
             >
-                <h2
-                    id="mainmenulabel"
-                    class="visually-hidden"
-                >
-                    {{ $tc('global.sw-admin-menu.navigation.label') }}
-                </h2>
-
-                {% block sw_admin_menu_navigation_main_list %}
-                <ul class="sw-admin-menu__navigation-list">
-                    <!-- eslint-disable sw-deprecation-rules/no-twigjs-blocks -->
-                    {% block sw_admin_menu_navigation_main_items %}
-                    <sw-admin-menu-item
-                        v-for="entry in mainMenuEntries"
-                        :key="`${entry.id || entry.path}-${entry.children.length}`"
-                        :tabindex="0"
-                        :class="{ 'is--entry-expanded': currentExpandedMenuEntries.includes(entry) }"
-                        :sidebar-expanded="isExpanded"
-                        :entry="entry"
-                        @menu-item-click="onMenuItemClick"
-                        @menu-item-enter="onMenuItemEnter"
-                    />
-                    {% endblock %}
-                </ul>
-                {% endblock %}
-            </nav>
-            {% endblock %}
-        </div>
-        {% endblock %}
-    </div>
-    {% endblock %}
-
-    {% block sw_admin_menu_footer %}
-    <div class="sw-admin-menu__footer">
-        {% block sw_admin_menu_user_actions_toggle %}
-        <!-- eslint-disable-next-line vuejs-accessibility/click-events-have-key-events vuejs-accessibility/mouse-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
-        <div
-            class="sw-admin-menu__user-actions-toggle"
-            :class="{'is--active': isUserActionsActive}"
-            @click="onToggleUserActions"
-            @mouseenter="openUserActions"
-        >
-
-            <sw-loader
-                v-if="isUserLoading"
-                size="32px"
-            />
-
-            {% block sw_admin_menu_user_actions_avatar %}
-            <sw-avatar
-                class="sw-admin-menu__avatar"
-                :image-url="avatarUrl"
-                :source-context="currentUser"
-                :first-name="firstName"
-                :last-name="lastName"
-            />
-            {% endblock %}
-
-            {% block sw_admin_menu_user_actions_custom_fields %}
-            <div class="sw-admin-menu__user-custom-fields collapsible-text">
-                <div class="sw-admin-menu__user-name">
-                    {{ userName }}
-                </div>
-                <div class="sw-admin-menu__user-type">
-                    {{ userTitle }}
-                </div>
-
-                {% block sw_admin_menu_user_actions_toggle_icon %}
-                <mt-icon
-                    :name="userActionsToggleIcon"
-                    class="sw-admin-menu__user-actions-indicator"
-                />
-                {% endblock %}
-            </div>
-            {% endblock %}
-        </div>
-        {% endblock %}
-
-        {% block sw_admin_menu_user_actions %}
-        <!-- eslint-disable-next-line vuejs-accessibility/mouse-events-have-key-events, vuejs-accessibility/no-static-element-interactions -->
-        <div
-            class="sw-admin-menu__user-actions"
-            :class="{'is--active': isUserActionsActive}"
-            @mouseleave="closeUserActions"
-        >
-
-            {% block sw_admin_menu_user_actions_label %}
-            <div
-                v-if="!isExpanded"
-                class="sw-admin-menu__user-actions-label"
-            >
-                {{ userName }}
-            </div>
-            {% endblock %}
-
-            {% block sw_admin_menu_user_actions_list %}
-            <ul class="sw-admin-menu__navigation-list">
-
-                {% block sw_admin_menu_user_actions_items %}
-
-                {% block sw_admin_menu_user_actions_items_logout_user %}
-                <li class="sw-admin-menu__navigation-list-item">
-                    <a
-                        href="#"
-                        class="sw-admin-menu__navigation-link sw-admin-menu__logout-action"
-                        @click.prevent="onLogoutUser"
-                    >
-                        <mt-icon
-                            class="sw-admin-menu__navigation-link-icon"
-                            name="regular-sign-out"
-                            size="16px"
-                        />
-                        {{ $tc('global.sw-admin-menu.linkLogout') }}
-                    </a>
-                </li>
-                {% endblock %}
-                {% endblock %}
-            </ul>
-            {% endblock %}
-
-        </div>
-        {% endblock %}
-    </div>
-    {% endblock %}
-</aside>
-{% endblock %}
+                {{ child.name }}
+            </router-link>
+        </template>
+    </template>
+</div>
