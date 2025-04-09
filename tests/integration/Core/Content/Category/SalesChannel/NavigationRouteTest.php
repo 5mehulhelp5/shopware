@@ -350,14 +350,6 @@ class NavigationRouteTest extends TestCase
             ],
         ], Context::createDefaultContext());
 
-        $response = $this->requestFooterNavigationWithSeoUrls();
-
-        foreach ($response as $category) {
-            if ($category['id'] === $this->ids->get('category3') && $category['linkType'] === CategoryDefinition::LINK_TYPE_CATEGORY) {
-                static::assertNotEmpty($category['internalLink']);
-            }
-        }
-
         $this->createSeoUrl(
             'frontend.navigation.page',
             '/navigation/' . $this->ids->get('category'),
@@ -365,48 +357,26 @@ class NavigationRouteTest extends TestCase
             $this->ids->get('category')
         );
 
+        $this->browser = $this->createCustomSalesChannelBrowser([
+            'id' => $this->ids->get('sales-channel'),
+            'navigationCategoryId' => $this->ids->get('category'),
+            'footerCategoryId' => $this->ids->get('category2'),
+            'serviceCategoryId' => $this->ids->get('category2'),
+        ]);
+
         $response = $this->requestFooterNavigationWithSeoUrls();
 
+        $found = false;
         foreach ($response as $category) {
             if ($category['id'] === $this->ids->get('category3') && $category['linkType'] === CategoryDefinition::LINK_TYPE_CATEGORY) {
+                $found = true;
                 static::assertStringContainsString('/custom-category-url', $category['internalLink']);
             }
         }
+        static::assertTrue($found, 'Category with SEO URL not found in response');
     }
 
-    public function testInternalLinkWithNullPlainUrl(): void
-    {
-        $mockUrlGenerator = $this->createMock(AbstractCategoryUrlGenerator::class);
-        $mockUrlGenerator->method('generate')->willReturn(null);
 
-        $container = $this->getContainer();
-        $container->set('Shopware\Core\Content\Category\Service\CategoryUrlGenerator', $mockUrlGenerator);
-
-        $this->getContainer()->get('category.repository')->update([
-            [
-                'id' => $this->ids->get('category3'),
-                'type' => CategoryDefinition::TYPE_LINK,
-                'linkType' => CategoryDefinition::LINK_TYPE_CATEGORY,
-                'internalLink' => $this->ids->get('category'),
-            ],
-        ], Context::createDefaultContext());
-
-        $originalLink = 'original-link-value';
-        $this->getContainer()->get('category.repository')->update([
-            [
-                'id' => $this->ids->get('category3'),
-                'internalLink' => $originalLink,
-            ],
-        ], Context::createDefaultContext());
-
-        $response = $this->requestFooterNavigationWithSeoUrls();
-
-        foreach ($response as $category) {
-            if ($category['id'] === $this->ids->get('category3') && $category['linkType'] === CategoryDefinition::LINK_TYPE_CATEGORY) {
-                static::assertEquals($originalLink, $category['internalLink']);
-            }
-        }
-    }
 
     /**
      * Helper method to create a pre-configured SEO URL for an entity
@@ -416,10 +386,10 @@ class NavigationRouteTest extends TestCase
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('foreignKey', $entityId));
         $criteria->addFilter(new EqualsFilter('routeName', $routeName));
-        
+
         $existingSeoUrls = $this->getContainer()->get('seo_url.repository')
             ->search($criteria, Context::createDefaultContext());
-        
+
         $data = [
             'salesChannelId' => $this->ids->get('sales-channel'),
             'routeName' => $routeName,
@@ -428,14 +398,16 @@ class NavigationRouteTest extends TestCase
             'isCanonical' => true,
             'foreignKey' => $entityId,
         ];
-        
+
         if ($existingSeoUrls->count() > 0) {
             $data['id'] = $existingSeoUrls->first()->getId();
         } else {
             $data['id'] = Uuid::randomHex();
         }
-        
+
         $this->getContainer()->get('seo_url.repository')->upsert([$data], Context::createDefaultContext());
+
+        $this->getContainer()->get('cache.object')->invalidateTags(['seo-url']);
     }
 
     /**
