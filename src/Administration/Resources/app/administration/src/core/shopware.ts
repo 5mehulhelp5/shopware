@@ -47,6 +47,7 @@ import Store from 'src/app/store';
 import { createExtendableSetup, overrideComponentSetup } from 'src/app/adapter/composition-extension-system';
 import * as Vue from 'vue';
 import type { DefineComponent, Ref } from 'vue';
+import Tracking from 'src/core/tracking/tracking';
 import InAppPurchase from './in-app-purchase';
 import ExtensionApi from './extension-api';
 import { LineItemType } from '../module/sw-order/order.types';
@@ -297,6 +298,8 @@ class ShopwareClass implements CustomShopwareProperties {
     public get Context() {
         return useContext();
     }
+
+    public Tracking = new Tracking();
 
     public _private = {
         ApiServices: ApiServices,
