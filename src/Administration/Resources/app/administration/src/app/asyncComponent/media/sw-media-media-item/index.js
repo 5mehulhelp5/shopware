@@ -86,6 +86,12 @@ export default {
 
             return {};
         },
+
+        extensionSdkButtons() {
+            return Shopware.State.get('actionButtons').buttons.filter((button) => {
+                    return button.entity === 'media' && button.view === 'item';
+            });
+        },
     },
 
     methods: {
@@ -221,5 +227,13 @@ export default {
                 this.$emit('media-item-replaced');
             });
         },
+
+        runAction(action, item) {
+            if (typeof action.callback !== 'function') {
+                return;
+            }
+
+            action.callback({ id: item.id, url: item.url });
+        }
     },
 };
