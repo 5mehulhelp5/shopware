@@ -18,7 +18,7 @@ class ThemeRuntimeConfig
 {
     public function __construct(
         public readonly string $themeId,
-        public readonly ?string $technicalName,
+        public readonly string $technicalName,
         /** @var array<string, mixed> */
         public readonly array $resolvedConfig,
         /** @var array<string> */
@@ -34,7 +34,7 @@ class ThemeRuntimeConfig
     /**
      * @param array{
      *     themeId: string,
-     *     technicalName: ?string,
+     *     technicalName: string,
      *     resolvedConfig?: array<string, mixed>,
      *     viewInheritance?: array<string>,
      *     scriptFiles?: array<string>|null,
@@ -52,32 +52,6 @@ class ThemeRuntimeConfig
             $data['scriptFiles'] ?? null,
             $data['iconSets'] ?? [],
             $data['updatedAt'] ?? new \DateTimeImmutable(),
-        );
-    }
-
-    /**
-     * Creates a new ThemeRuntimeConfig with the specified fields updated.
-     * /**
-     * @param array{
-     *     themeId?: string,
-     *     technicalName?: string|null,
-     *     resolvedConfig?: array<string, mixed>,
-     *     viewInheritance?: array<string>,
-     *     scriptFiles?: array<string>|null,
-     *     iconSets?: array<string, array{path: string, namespace: string}>,
-     *     updatedAt?: \DateTimeInterface|null
-     * } $data
-     */
-    public function with(array $data): self
-    {
-        return new self(
-            $data['themeId'] ?? $this->themeId,
-            \array_key_exists('technicalName', $data) ? $data['technicalName'] : $this->technicalName,
-            $data['resolvedConfig'] ?? $this->resolvedConfig,
-            $data['viewInheritance'] ?? $this->viewInheritance,
-            \array_key_exists('scriptFiles', $data) ? $data['scriptFiles'] : $this->scriptFiles,
-            $data['iconSets'] ?? $this->iconSets,
-            $data['updatedAt'] ?? $this->updatedAt,
         );
     }
 }

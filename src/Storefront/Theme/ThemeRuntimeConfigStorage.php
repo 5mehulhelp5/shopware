@@ -2,7 +2,6 @@
 
 namespace Shopware\Storefront\Theme;
 
-use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Log\Package;
@@ -92,97 +91,10 @@ class ThemeRuntimeConfigStorage
     {
         return $this->connection->fetchFirstColumn(
             <<<'SQL'
-                SELECT DISTINCT `technical_name`
+                SELECT `technical_name`
                 FROM `theme_runtime_config`
-                WHERE `technical_name` IS NOT NULL
             SQL,
         );
-    }
-
-    /**
-     * Returns ids of theme copies (using the same theme implementation by duplicated config) for a given theme.
-     *
-     * @return array<string>
-     */
-    public function getCopiesIds(string $themeId): array
-    {
-        return $this->connection->fetchFirstColumn(
-            <<<'SQL'
-                SELECT LOWER(HEX(`id`)) AS id
-                FROM `theme`
-                WHERE `parent_theme_id` = :themeId AND `technical_name` IS NULL
-            SQL,
-            ['themeId' => Uuid::fromHexToBytes($themeId)],
-        );
-    }
-
-    /**
-     * Returns ids of child themes and theme copies, recursively.
-     *
-     * @return array<string>
-     */
-    public function getChildThemeIds(string $parentThemeId): array
-    {
-        $processedThemeIds = [$parentThemeId];
-        $childThemeIds = [];
-        $pendingParentIds = [$parentThemeId];
-
-        while (!empty($pendingParentIds)) {
-            $directChildren = $this->connection->fetchFirstColumn(
-                <<<'SQL'
-                    SELECT LOWER(HEX(id)) as id FROM theme WHERE parent_theme_id IN (:parentIds)
-                SQL,
-                ['parentIds' => array_map(fn ($id) => Uuid::fromHexToBytes($id), $pendingParentIds)],
-                [
-                    'parentIds' => ArrayParameterType::STRING,
-                ]
-            );
-
-            $pendingParentIds = [];
-            foreach ($directChildren as $childId) {
-                $childId = (string) $childId;
-
-                // Skip if we've already processed this theme (prevents infinite loops)
-                if (\in_array($childId, $processedThemeIds, true)) {
-                    continue;
-                }
-
-                $processedThemeIds[] = $childId;
-                $childThemeIds[] = $childId;
-                $pendingParentIds[] = $childId;
-            }
-        }
-
-        return $childThemeIds;
-    }
-
-    public function getThemeTechnicalName(string $themeId): ?string
-    {
-        $names = $this->connection->fetchAssociative('
-            SELECT theme.technical_name as themeName, parentTheme.technical_name as parentThemeName
-            FROM theme
-                LEFT JOIN theme AS parentTheme ON parentTheme.id = theme.parent_theme_id
-            WHERE theme.id = :id
-        ', [
-            'id' => Uuid::fromHexToBytes($themeId),
-        ]);
-
-        if ($names === false) {
-            return null;
-        }
-
-        return $names['themeName'] ?? $names['parentThemeName'] ?? null;
-    }
-
-    public function getThemeIdByTechnicalName(string $technicalName): ?string
-    {
-        $themeId = $this->connection->fetchOne('
-            SELECT LOWER(HEX(id)) FROM theme WHERE technical_name = :technicalName
-        ', [
-            'technicalName' => $technicalName,
-        ]);
-
-        return $themeId === false ? null : $themeId;
     }
 
     /**
