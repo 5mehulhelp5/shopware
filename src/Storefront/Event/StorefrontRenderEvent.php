@@ -26,7 +26,7 @@ class StorefrontRenderEvent extends NestedEvent implements ShopwareSalesChannelE
         protected Request $request,
         protected SalesChannelContext $context,
     ) {
-        $this->parameters = array_merge(['context' => $context], $parameters);
+        $this->parameters = array_merge(['context' => $context, 'headerContext' => []], $parameters);
     }
 
     public function getSalesChannelContext(): SalesChannelContext

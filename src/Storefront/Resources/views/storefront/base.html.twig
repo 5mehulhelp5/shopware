@@ -36,7 +36,7 @@
         {% endblock %}
 
         {% block base_esi_header %}
-            {{ render_esi(url('frontend.header')) }}
+            {{ render_esi(url('frontend.header', { 'headerContext': context.extension.headerContext})) }}
         {% endblock %}
 
         {% block base_navigation_styling %}

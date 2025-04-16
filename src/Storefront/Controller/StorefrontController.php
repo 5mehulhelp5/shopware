@@ -12,8 +12,10 @@ use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Routing\RequestTransformerInterface;
 use Shopware\Core\Framework\Script\Execution\Hook;
 use Shopware\Core\Framework\Script\Execution\ScriptExecutor;
+use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\Profiling\Profiler;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Storefront\Controller\Exception\StorefrontException;
 use Shopware\Storefront\Event\StorefrontRedirectEvent;
@@ -69,8 +71,10 @@ abstract class StorefrontController extends AbstractController
             throw StorefrontException::noRequestProvided();
         }
 
+        /** @var SalesChannelContext $salesChannelContext */
         $salesChannelContext = $request->attributes->get(PlatformRequest::ATTRIBUTE_SALES_CHANNEL_CONTEXT_OBJECT);
 
+        $parameters['headerContext'] = $salesChannelContext->getExtension('HeaderContext') ?? new ArrayStruct();
         $event = new StorefrontRenderEvent($view, $parameters, $request, $salesChannelContext);
 
         $this->container->get('event_dispatcher')->dispatch($event);
