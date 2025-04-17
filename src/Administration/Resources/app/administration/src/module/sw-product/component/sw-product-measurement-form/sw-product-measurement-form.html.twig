@@ -1,0 +1,121 @@
+<div class="sw-product-measurement-form">
+    <div class="sw-product-measurement-form__description-group">
+        <p>{{ $tc('sw-product.measurementForm.description') }}</p>
+        <p v-html="$tc('sw-product.measurementForm.note')"></p>
+    </div>
+
+    <sw-container
+        columns="1fr 1fr"
+        gap="0px 32px"
+    >
+        <sw-inherit-wrapper
+            v-model:value="product.width"
+            :has-parent="!!parentProduct.id"
+            :inherited-value="parentProduct.width"
+        >
+            <template #content="props">
+
+                <mt-number-field
+                    :map-inheritance="props"
+                    :label="$tc('sw-product.settingsForm.labelWidth')"
+                    :placeholder="$tc('sw-product.settingsForm.placeholderWidth')"
+                    allow-empty
+                    :min="0"
+                    :error="productWidthError"
+                    :disabled="props.isInherited || !allowEdit"
+                    :model-value="props.currentValue"
+                    @update:model-value="props.updateCurrentValue"
+                >
+                    <template #suffix>
+                        <span>mm</span>
+                    </template>
+                </mt-number-field>
+
+            </template>
+        </sw-inherit-wrapper>
+
+        <sw-inherit-wrapper
+            v-model:value="product.height"
+            :has-parent="!!parentProduct.id"
+            :inherited-value="parentProduct.height"
+        >
+            <template #content="props">
+
+                <mt-number-field
+                    :map-inheritance="props"
+                    :label="$tc('sw-product.settingsForm.labelHeight')"
+                    :placeholder="$tc('sw-product.settingsForm.placeholderHeight')"
+                    allow-empty
+                    :min="0"
+                    :error="productHeightError"
+                    :disabled="props.isInherited || !allowEdit"
+                    :model-value="props.currentValue"
+                    @update:model-value="props.updateCurrentValue"
+                >
+                    <template #suffix>
+                        <span>mm</span>
+                    </template>
+                </mt-number-field>
+
+            </template>
+        </sw-inherit-wrapper>
+    </sw-container>
+
+    <sw-container
+        columns="1fr 1fr"
+        gap="0px 32px"
+    >
+        <sw-inherit-wrapper
+            v-model:value="product.length"
+            :has-parent="!!parentProduct.id"
+            :inherited-value="parentProduct.length"
+        >
+            <template #content="props">
+
+                <mt-number-field
+                    :map-inheritance="props"
+                    :label="$tc('sw-product.settingsForm.labelLength')"
+                    :placeholder="$tc('sw-product.settingsForm.placeholderLength')"
+                    allow-empty
+                    :min="0"
+                    :error="productLengthError"
+                    :disabled="props.isInherited || !allowEdit"
+                    :model-value="props.currentValue"
+                    @update:model-value="props.updateCurrentValue"
+                >
+                    <template #suffix>
+                        <span>mm</span>
+                    </template>
+                </mt-number-field>
+
+            </template>
+        </sw-inherit-wrapper>
+
+        <sw-inherit-wrapper
+            v-model:value="product.weight"
+            :has-parent="!!parentProduct.id"
+            :inherited-value="parentProduct.weight"
+        >
+            <template #content="props">
+
+                <mt-number-field
+                    :map-inheritance="props"
+                    :label="$tc('sw-product.settingsForm.labelWeight')"
+                    :placeholder="$tc('sw-product.settingsForm.placeholderWeight')"
+                    allow-empty
+                    :min="0"
+                    :digits="3"
+                    :error="productWeightError"
+                    :disabled="props.isInherited || !allowEdit"
+                    :model-value="props.currentValue"
+                    @update:model-value="props.updateCurrentValue"
+                >
+                    <template #suffix>
+                        <span>kg</span>
+                    </template>
+                </mt-number-field>
+
+            </template>
+        </sw-inherit-wrapper>
+    </sw-container>
+</div>
