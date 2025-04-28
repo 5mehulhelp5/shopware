@@ -26,8 +26,6 @@ use Shopware\Core\Framework\Store\Struct\StoreUpdateStruct;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @internal
@@ -36,8 +34,6 @@ use Symfony\Contracts\Cache\ItemInterface;
 class StoreClient
 {
     public const EXTENSION_LICENSE_IS_ALREADY_CANCELLED = 'ShopwarePlatformException-61';
-    public const EXTENSION_LIST_CACHE = 'extensionListStatus';
-    public const EXTENSION_LIST_TTL = 7200; // 2 hours
     private const PLUGIN_LICENSE_VIOLATION_EXTENSION_KEY = 'licenseViolation';
 
     public function __construct(
@@ -50,7 +46,6 @@ class StoreClient
         protected readonly ClientInterface $client,
         private readonly InstanceService $instanceService,
         private readonly RequestStack $requestStack,
-        private readonly CacheInterface $cache,
     ) {
     }
 
@@ -124,11 +119,7 @@ class StoreClient
             ];
         }
 
-        return $this->cache->get(self::EXTENSION_LIST_CACHE, function (ItemInterface $item) use ($extensionList, $context) {
-            $item->expiresAfter(self::EXTENSION_LIST_TTL);
-
-            return $this->getUpdateListFromStore($extensionList, $context);
-        });
+        return $this->getUpdateListFromStore($extensionList, $context);
     }
 
     public function checkForViolations(

@@ -7,9 +7,6 @@ use Shopware\Core\Framework\Log\Package;
 #[Package('framework')]
 class Debug
 {
-    /**
-     * @var array<mixed>
-     */
     protected array $dumps = [];
 
     public function dump(mixed $value, ?string $key = null): void
@@ -21,9 +18,6 @@ class Debug
         }
     }
 
-    /**
-     * @return array<mixed>
-     */
     public function all(): array
     {
         return $this->dumps;

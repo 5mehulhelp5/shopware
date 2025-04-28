@@ -11,7 +11,6 @@ use Shopware\Core\Framework\Plugin\PluginService;
 use Shopware\Core\Framework\Routing\RoutingException;
 use Shopware\Core\Framework\Store\Services\AbstractExtensionLifecycle;
 use Shopware\Core\Framework\Store\Services\ExtensionDownloader;
-use Shopware\Core\Framework\Store\Services\StoreClient;
 use Shopware\Core\Framework\Store\StoreException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -19,7 +18,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Cache\CacheInterface;
 
 /**
  * @internal
@@ -34,8 +32,7 @@ class ExtensionStoreActionsController extends AbstractController
         private readonly PluginService $pluginService,
         private readonly PluginManagementService $pluginManagementService,
         private readonly Filesystem $fileSystem,
-        private readonly bool $runtimeExtensionManagementAllowed,
-        private readonly CacheInterface $cache,
+        private readonly bool $runtimeExtensionManagementAllowed
     ) {
     }
 
@@ -43,8 +40,6 @@ class ExtensionStoreActionsController extends AbstractController
     public function refreshExtensions(Context $context): Response
     {
         $this->pluginService->refreshPlugins($context, new NullIO());
-
-        $this->cache->delete(StoreClient::EXTENSION_LIST_CACHE);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }
@@ -57,7 +52,7 @@ class ExtensionStoreActionsController extends AbstractController
         /** @var UploadedFile|null $file */
         $file = $request->files->get('file');
         if (!$file) {
-            throw RoutingException::missingRequestParameter('file'); // @phpstan-ignore-line shopware.domainException
+            throw RoutingException::missingRequestParameter('file');
         }
 
         if ($file->getPathname() === '') {
@@ -71,7 +66,7 @@ class ExtensionStoreActionsController extends AbstractController
                 // Do nothing because the tmp file is already deleted by os
             }
 
-            throw new PluginNotAZipFileException((string) $file->getMimeType()); // @phpstan-ignore-line shopware.domainException
+            throw new PluginNotAZipFileException((string) $file->getMimeType());
         }
 
         try {
@@ -86,8 +81,6 @@ class ExtensionStoreActionsController extends AbstractController
             throw $e;
         }
 
-        $this->cache->delete(StoreClient::EXTENSION_LIST_CACHE);
-
         return new Response('', Response::HTTP_NO_CONTENT);
     }
 
@@ -97,8 +90,6 @@ class ExtensionStoreActionsController extends AbstractController
         $this->checkExtensionManagementAllowed();
 
         $this->extensionDownloader->download($technicalName, $context);
-
-        $this->cache->delete(StoreClient::EXTENSION_LIST_CACHE);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }
@@ -150,8 +141,6 @@ class ExtensionStoreActionsController extends AbstractController
 
         $this->extensionLifecycleService->activate($type, $technicalName, $context);
 
-        $this->cache->delete(StoreClient::EXTENSION_LIST_CACHE);
-
         return new Response('', Response::HTTP_NO_CONTENT);
     }
 
@@ -161,8 +150,6 @@ class ExtensionStoreActionsController extends AbstractController
         $this->checkExtensionManagementAllowed();
 
         $this->extensionLifecycleService->deactivate($type, $technicalName, $context);
-
-        $this->cache->delete(StoreClient::EXTENSION_LIST_CACHE);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }
