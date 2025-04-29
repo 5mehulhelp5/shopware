@@ -95,8 +95,14 @@ class CategoryRoute extends AbstractCategoryRoute
             throw CategoryException::pageNotFound($pageId);
         }
 
+        $productListing = $cmsPage->getElementsOfType('product-listing')[0] ?? null;
+        if ($productListing && !!$request->get('includeProductListing')) {
+            $category->setProductListing($productListing);
+
+        }
         $category->setCmsPage($cmsPage);
         $category->setCmsPageId($pageId);
+        $category->setName("MAAAATHIAS");
 
         return new CategoryRouteResponse($category);
     }

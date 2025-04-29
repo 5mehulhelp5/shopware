@@ -3,7 +3,9 @@
 namespace Shopware\Core\Content\Category;
 
 use Shopware\Core\Content\Category\Aggregate\CategoryTranslation\CategoryTranslationCollection;
+use Shopware\Core\Content\Cms\Aggregate\CmsSlot\CmsSlotEntity;
 use Shopware\Core\Content\Cms\CmsPageEntity;
+use Shopware\Core\Content\Cms\SalesChannel\Struct\ProductListingStruct;
 use Shopware\Core\Content\Media\MediaEntity;
 use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Content\ProductStream\ProductStreamEntity;
@@ -111,6 +113,18 @@ class CategoryEntity extends Entity
     protected ?SeoUrlCollection $seoUrls = null;
 
     protected ?string $customEntityTypeId = null;
+
+    protected ?CmsSlotEntity $productListing = null;
+
+    public function getProductListing(): ?CmsSlotEntity
+    {
+        return $this->productListing;
+    }
+
+    public function setProductListing(CmsSlotEntity $productListing): void
+    {
+        $this->productListing = $productListing;
+    }
 
     public function getParentId(): ?string
     {

@@ -5,6 +5,7 @@ namespace Shopware\Core\Content\Category;
 use Shopware\Core\Content\Category\Aggregate\CategoryTag\CategoryTagDefinition;
 use Shopware\Core\Content\Category\Aggregate\CategoryTranslation\CategoryTranslationDefinition;
 use Shopware\Core\Content\Cms\CmsPageDefinition;
+use Shopware\Core\Content\Cms\Aggregate\CmsSlot\CmsSlotDefinition;
 use Shopware\Core\Content\Media\MediaDefinition;
 use Shopware\Core\Content\Product\Aggregate\ProductCategory\ProductCategoryDefinition;
 use Shopware\Core\Content\Product\Aggregate\ProductCategoryTree\ProductCategoryTreeDefinition;
@@ -173,6 +174,11 @@ class CategoryDefinition extends EntityDefinition
             (new OneToManyAssociationField('seoUrls', SeoUrlDefinition::class, 'foreign_key'))->addFlags(new ApiAware()),
 
             (new IntField('visible_child_count', 'visibleChildCount'))->addFlags(new Runtime(), new ApiAware()),
+            
+            // Add foreign key field for product listing
+            (new FkField('product_listing_id', 'productListingId', CmsSlotDefinition::class, 'id'))->addFlags(new ApiAware()),
+            // Add association for product listing
+            (new ManyToOneAssociationField('productListing', 'product_listing_id', CmsSlotDefinition::class, 'id', false))->addFlags(new ApiAware()),
         ]);
     }
 }
