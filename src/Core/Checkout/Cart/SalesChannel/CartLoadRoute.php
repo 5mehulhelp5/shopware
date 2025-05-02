@@ -21,10 +21,8 @@ class CartLoadRoute extends AbstractCartLoadRoute
      * @internal
      */
     public function __construct(
-        private readonly AbstractCartPersister $persister,
-        private readonly CartFactory $cartFactory,
-        private readonly CartCalculator $cartCalculator,
-        private readonly TaxProviderProcessor $taxProviderProcessor
+        private readonly TaxProviderProcessor $taxProviderProcessor,
+        private readonly CartService $cartService,
     ) {
     }
 
@@ -40,12 +38,12 @@ class CartLoadRoute extends AbstractCartLoadRoute
         $taxed = $request->get('taxed', false);
 
         try {
-            $cart = $this->persister->load($token, $context);
+            $cart = $this->cartService->getCart($token, $context);
         } catch (CartTokenNotFoundException) {
-            $cart = $this->cartFactory->createNew($token);
+            $cart = $this->cartService->createNew($token);
         }
 
-        $cart = $this->cartCalculator->calculate($cart, $context);
+        $cart = $this->cartService->recalculate($cart, $context);
 
         if ($taxed) {
             $this->taxProviderProcessor->process($cart, $context);
