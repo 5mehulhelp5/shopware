@@ -4,12 +4,10 @@ namespace Shopware\Tests\Unit\Core\Checkout\Cart\SalesChannel;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Checkout\Cart\AbstractCartPersister;
 use Shopware\Core\Checkout\Cart\Cart;
-use Shopware\Core\Checkout\Cart\CartCalculator;
-use Shopware\Core\Checkout\Cart\CartException;
-use Shopware\Core\Checkout\Cart\CartFactory;
+use Shopware\Core\Checkout\Cart\Exception\CartTokenNotFoundException;
 use Shopware\Core\Checkout\Cart\SalesChannel\CartLoadRoute;
+use Shopware\Core\Checkout\Cart\SalesChannel\CartService;
 use Shopware\Core\Checkout\Cart\TaxProvider\TaxProviderProcessor;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,26 +21,25 @@ class CartLoadRouteTest extends TestCase
     public function testLoadCartCreatesNewCart(): void
     {
         $newCart = new Cart('test');
-        $factory = $this->createMock(CartFactory::class);
-        $factory
+        $calculatedCart = new Cart('calculated');
+        
+        $cartService = $this->createMock(CartService::class);
+        $cartService
+            ->expects(static::once())
+            ->method('getCart')
+            ->with('test', $this->isInstanceOf(SalesChannelContext::class))
+            ->willThrowException(new CartTokenNotFoundException(404, 'CART_NOT_FOUND', 'cart not found'));
+            
+        $cartService
             ->expects(static::once())
             ->method('createNew')
             ->with('test')
             ->willReturn($newCart);
-
-        $persister = $this->createMock(AbstractCartPersister::class);
-        $persister
+            
+        $cartService
             ->expects(static::once())
-            ->method('load')
-            ->with('test')
-            ->willThrowException(CartException::tokenNotFound('test'));
-
-        $calculatedCart = new Cart('calculated');
-        $calculator = $this->createMock(CartCalculator::class);
-        $calculator
-            ->expects(static::once())
-            ->method('calculate')
-            ->with($newCart, $this->createMock(SalesChannelContext::class))
+            ->method('recalculate')
+            ->with($newCart, $this->isInstanceOf(SalesChannelContext::class))
             ->willReturn($calculatedCart);
 
         $salesChannelContext = $this->createMock(SalesChannelContext::class);
@@ -52,10 +49,8 @@ class CartLoadRouteTest extends TestCase
             ->willReturn('test');
 
         $cartLoadRoute = new CartLoadRoute(
-            $persister,
-            $factory,
-            $calculator,
             $this->createMock(TaxProviderProcessor::class),
+            $cartService
         );
 
         static::assertSame($calculatedCart, $cartLoadRoute->load(new Request(), $salesChannelContext)->getCart());
