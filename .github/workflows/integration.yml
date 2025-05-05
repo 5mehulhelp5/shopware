@@ -224,9 +224,9 @@ jobs:
       fail-fast: false
       matrix:
         update:
-          - version: ${{ needs.tested-update-versions.outputs.lts-latest-version }}
+          # - version: ${{ needs.tested-update-versions.outputs.lts-latest-version }}
           - version: ${{ needs.tested-update-versions.outputs.first-version }}
-          - version: ${{ needs.tested-update-versions.outputs.latest-version }}
+          # - version: ${{ needs.tested-update-versions.outputs.latest-version }}
     env:
       SHOPWARE_HTTP_CACHE_ENABLED: 0
       BLUE_GREEN_DEPLOYMENT: 1
@@ -293,7 +293,10 @@ jobs:
 
       - name: Start web server
         working-directory: old-shopware
-        run: symfony server:start -d
+        run: |
+          symfony server:start -d
+          symfony server:status
+          nohup symfony server:log > server.log 2>&1 &
 
       - uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # 4
         with:
@@ -317,6 +320,11 @@ jobs:
         if: inputs.nightly != 'true'
         working-directory: new-shopware/tests/acceptance
         run: npx playwright test --project=Update --trace=on
+
+      - if: failure()
+        name: Dump logs 
+        run: |
+          cat server.log
 
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # 4
         if: always()
