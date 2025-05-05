@@ -228,6 +228,8 @@ jobs:
           - version: ${{ needs.tested-update-versions.outputs.first-version }}
           # - version: ${{ needs.tested-update-versions.outputs.latest-version }}
     env:
+      APP_DEBUG: 1
+      APP_ENV: dev
       SHOPWARE_HTTP_CACHE_ENABLED: 0
       BLUE_GREEN_DEPLOYMENT: 1
       SHOPWARE_DISABLE_UPDATE_CHECK: "0"
