@@ -326,6 +326,8 @@ jobs:
       - if: failure()
         name: Dump logs 
         run: |
+          echo "<?php phpinfo(); " >> shopware-old/public/info.php
+          curl localhost:8000/info.php
           cat $HOME/.symfony5/log/*
 
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # 4
