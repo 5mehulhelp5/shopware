@@ -18,10 +18,10 @@ class ThemeInheritanceBuilder implements ThemeInheritanceBuilderInterface
     /**
      * {@inheritdoc}
      *
-     * @param array<string, float|array<mixed>> $bundles
-     * @param array<string, bool|array<mixed>> $themes
+     * @param array<string, int> $bundles
+     * @param array<string, bool> $themes
      *
-     * @return array<string, float|array<mixed>>
+     * @return array<string, int>
      */
     public function build(array $bundles, array $themes): array
     {
@@ -73,7 +73,7 @@ class ThemeInheritanceBuilder implements ThemeInheritanceBuilderInterface
     }
 
     /**
-     * @param array<string, bool|array<mixed>> $themes
+     * @param array<string, bool> $themes
      *
      * @return array<string, array<int, string>>
      */

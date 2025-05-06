@@ -26,6 +26,11 @@ interface ThemeInheritanceBuilderInterface
      * - @SwagPayPal explicitly defines the order in which the PayPal plugin should be considered
      * - @Plugins is a wildcard for all plugins that are not explicitly specified.
      * - @MyNewTheme stands for your own theme, which should be inherited from Storefront.
+     *
+     * @param array<string, int> $bundles
+     * @param array<int|string, bool> $themes
+     *
+     * @return array<string, int>
      */
     public function build(array $bundles, array $themes): array;
 }

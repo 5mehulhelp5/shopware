@@ -142,7 +142,7 @@ class TemplateFinder implements TemplateFinderInterface, ResetInterface
     }
 
     /**
-     * @param string[] $queue
+     * @param array<string, int> $queue
      */
     private function defineCache(array $queue): void
     {

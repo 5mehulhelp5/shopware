@@ -2786,21 +2786,6 @@ parameters:
 			path: src/Storefront/Theme/ThemeLifecycleHandler.php
 
 		-
-			message: "#^Method Shopware\\\\Storefront\\\\Theme\\\\Twig\\\\ThemeInheritanceBuilderInterface\\:\\:build\\(\\) has parameter \\$bundles with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Storefront/Theme/Twig/ThemeInheritanceBuilderInterface.php
-
-		-
-			message: "#^Method Shopware\\\\Storefront\\\\Theme\\\\Twig\\\\ThemeInheritanceBuilderInterface\\:\\:build\\(\\) has parameter \\$themes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Storefront/Theme/Twig/ThemeInheritanceBuilderInterface.php
-
-		-
-			message: "#^Method Shopware\\\\Storefront\\\\Theme\\\\Twig\\\\ThemeInheritanceBuilderInterface\\:\\:build\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Storefront/Theme/Twig/ThemeInheritanceBuilderInterface.php
-
-		-
 			message: "#^Expected domain exception class Shopware\\\\Core\\\\Framework\\\\Notification\\\\NotificationException, got Shopware\\\\Core\\\\Framework\\\\Routing\\\\RoutingException$#"
 			count: 3
 			path: src/Core/Framework/Notification/Api/NotificationController.php

@@ -12,14 +12,14 @@ interface TemplateNamespaceHierarchyBuilderInterface
      * Needs to return the new hierarchy.
      * Example hierarchy structure:
      * [
-     *     'Storefront',
-     *     'SwagPayPal',
-     *     'MyOwnTheme',
+     *     'Storefront' => -1, // priority of the plugin(namespace)
+     *     'SwagPayPal' => 0,
+     *     'MyOwnTheme' => 1,
      * ]
      *
-     * @param array<string> $namespaceHierarchy
+     * @param array<string, int> $namespaceHierarchy
      *
-     * @return array<string>
+     * @return array<string, int>
      */
     public function buildNamespaceHierarchy(array $namespaceHierarchy): array;
 }
