@@ -20,19 +20,19 @@ jobs:
       fail-fast: false
       matrix:
         name:
-          - 'Platform'
-          - 'Install'
+          - "Platform"
+          - "Install"
         accessibility:
-          - ''
+          - ""
         php-version:
-          - '8.2'
-          - '8.4'
+          - "8.2"
+          - "8.4"
         include:
-          - name: 'Platform'
-            accessibility: 'accessibility'
+          - name: "Platform"
+            accessibility: "accessibility"
             php-version: 8.2
-          - name: 'Platform'
-            accessibility: 'accessibility'
+          - name: "Platform"
+            accessibility: "accessibility"
             php-version: 8.4
     env:
       SHOPWARE_HTTP_CACHE_ENABLED: 0
@@ -62,7 +62,7 @@ jobs:
       - name: Setup Shopware
         uses: shopware/setup-shopware@main
         with:
-          mysql-version: 'skip'
+          mysql-version: "skip"
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
           install: ${{ matrix.name != 'Install' }} # When testing the installation routine of Shopware, don't execute the installation automatically
@@ -131,7 +131,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
       - id: generate-matrix
@@ -179,7 +179,7 @@ jobs:
         uses: shopware/setup-shopware@main
         with:
           php-version: ${{ matrix.php }}
-          mysql-version: 'skip'
+          mysql-version: "skip"
           shopware-version: ${{ github.ref }}
           shopware-repository: ${{ github.repository }}
 
@@ -278,10 +278,10 @@ jobs:
       fail-fast: false
       matrix:
         update:
-          - version: ${{ needs.tested-update-versions.outputs.lts-latest-version }}
+          #- version: ${{ needs.tested-update-versions.outputs.lts-latest-version }}
           # fix with #9031
-          # - version: ${{ needs.tested-update-versions.outputs.first-version }}
-          - version: ${{ needs.tested-update-versions.outputs.latest-version }}
+          - version: ${{ needs.tested-update-versions.outputs.first-version }}
+          #- version: ${{ needs.tested-update-versions.outputs.latest-version }}
     env:
       SHOPWARE_HTTP_CACHE_ENABLED: 0
       BLUE_GREEN_DEPLOYMENT: 1
@@ -379,6 +379,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
+          name: acceptance-update-test-debug
+          path: old-shopware/var/log
+          retention-days: 1
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
           name: playwright-report-update-${{ matrix.update.version }}
           path: new-shopware/tests/acceptance/test-results/
           retention-days: 3
@@ -443,19 +450,20 @@ jobs:
   check:
     if: always()
     needs:
-    - acceptance
-    - phpunit
-    - win-checkout
-    - code-ql
-    - acceptance-update
-    - blue-green-66-67
+      - acceptance
+      - phpunit
+      - win-checkout
+      - code-ql
+      - acceptance-update
+      - blue-green-66-67
 
     runs-on: Ubuntu-latest
     steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        # allowed-failures: docs, linters
-        # allow all jobs to be skipped in case of a PR run
-        allowed-skips: acceptance, phpunit, win-checkout, code-ql, acceptance-update, blue-green-66-67
-        jobs: ${{ toJSON(needs) }}
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          # allowed-failures: docs, linters
+          # allow all jobs to be skipped in case of a PR run
+          allowed-skips: acceptance, phpunit, win-checkout, code-ql, acceptance-update, blue-green-66-67
+          jobs: ${{ toJSON(needs) }}
+
