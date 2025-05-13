@@ -26,6 +26,9 @@ class ProductPriceHydrator extends EntityHydrator
         if (isset($row[$root . '.ruleId'])) {
             $entity->ruleId = Uuid::fromBytesToHex($row[$root . '.ruleId']);
         }
+        if (isset($row[$root . '.currencyId'])) {
+            $entity->currencyId = Uuid::fromBytesToHex($row[$root . '.currencyId']);
+        }
         if (\array_key_exists($root . '.price', $row)) {
             $entity->price = $definition->decode('price', self::value($row, $root, 'price'));
         }
@@ -46,6 +49,7 @@ class ProductPriceHydrator extends EntityHydrator
         }
         $entity->product = $this->manyToOne($row, $root, $definition->getField('product'), $context);
         $entity->rule = $this->manyToOne($row, $root, $definition->getField('rule'), $context);
+        $entity->currency = $this->manyToOne($row, $root, $definition->getField('currency'), $context);
 
         $this->translate($definition, $entity, $row, $root, $context, $definition->getTranslatedFields());
         $this->hydrateFields($definition, $entity, $root, $row, $context, $definition->getExtensionFields());

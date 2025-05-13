@@ -15,6 +15,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\Price;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\PriceCollection;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\System\Currency\CurrencyEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
@@ -66,6 +67,11 @@ class PriceFacade
     public function getUnit(): float
     {
         return $this->price->getUnitPrice();
+    }
+
+    public function getCurrency(): CurrencyEntity
+    {
+        return $this->context->getCurrency();
     }
 
     /**
@@ -244,6 +250,7 @@ class PriceFacade
             $new->getUnitPrice(),
             $new->getTotalPrice(),
             $new->getCalculatedTaxes(),
+            $this->context->getCurrency()
         );
     }
 }

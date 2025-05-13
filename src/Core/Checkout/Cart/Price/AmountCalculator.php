@@ -144,4 +144,20 @@ class AmountCalculator
 
         return $taxes;
     }
+
+    private function create(/* parameters */): CalculatedPrice
+    {
+        // ...existing code...
+        return new CalculatedPrice(
+            $unitPrice,
+            $price,
+            $taxes,
+            $taxRules,
+            $quantity,
+            $referencePrice,
+            $listPrice,
+            $regulationPrice,
+            $context->getCurrency() // Add this line
+        );
+    }
 }

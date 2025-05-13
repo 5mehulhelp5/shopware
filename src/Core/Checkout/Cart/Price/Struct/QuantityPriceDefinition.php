@@ -7,6 +7,7 @@ use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Struct\Struct;
 use Shopware\Core\Framework\Util\FloatComparator;
+use Shopware\Core\System\Currency\CurrencyEntity;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
@@ -29,6 +30,8 @@ class QuantityPriceDefinition extends Struct implements PriceDefinitionInterface
     protected ?float $listPrice = null;
 
     protected ?float $regulationPrice = null;
+
+    protected ?CurrencyEntity $currency = null;
 
     public function __construct(
         protected float $price,
@@ -159,5 +162,15 @@ class QuantityPriceDefinition extends Struct implements PriceDefinitionInterface
     public function setReferencePriceDefinition(?ReferencePriceDefinition $referencePriceDefinition): void
     {
         $this->referencePriceDefinition = $referencePriceDefinition;
+    }
+
+    public function getCurrency(): ?CurrencyEntity
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?CurrencyEntity $currency): void
+    {
+        $this->currency = $currency;
     }
 }

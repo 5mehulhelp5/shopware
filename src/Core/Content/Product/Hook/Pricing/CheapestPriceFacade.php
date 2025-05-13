@@ -99,6 +99,7 @@ class CheapestPriceFacade extends PriceFacade
             $price->getUnitPrice(),
             $price->getTotalPrice(),
             $price->getCalculatedTaxes(),
+            $this->context->getCurrency()
         );
 
         $this->price->setHasRange($range);

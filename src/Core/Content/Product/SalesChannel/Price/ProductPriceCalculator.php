@@ -75,6 +75,7 @@ class ProductPriceCalculator extends AbstractProductPriceCalculator
 
         $product->assign([
             'calculatedPrice' => $price,
+            'currency' => $context->getCurrency(),
         ]);
     }
 
@@ -178,6 +179,10 @@ class ProductPriceCalculator extends AbstractProductPriceCalculator
         );
         $definition->setRegulationPrice(
             $this->getRegulationPrice($prices, $context)
+        );
+
+        $definition->setCurrency(
+            $context->getCurrency()
         );
 
         return $definition;

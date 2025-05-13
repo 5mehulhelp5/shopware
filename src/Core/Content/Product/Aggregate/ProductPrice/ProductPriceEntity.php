@@ -7,6 +7,7 @@ use Shopware\Core\Content\Rule\RuleEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCustomFieldsTrait;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\PriceRuleEntity;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\System\Currency\CurrencyEntity;
 
 #[Package('inventory')]
 class ProductPriceEntity extends PriceRuleEntity
@@ -19,9 +20,13 @@ class ProductPriceEntity extends PriceRuleEntity
 
     protected ?int $quantityEnd = null;
 
+    protected ?string $currencyId = null;
+
     protected ?ProductEntity $product = null;
 
     protected ?RuleEntity $rule = null;
+
+    protected ?CurrencyEntity $currency = null;
 
     public function getProduct(): ?ProductEntity
     {
@@ -71,5 +76,25 @@ class ProductPriceEntity extends PriceRuleEntity
     public function setProductId(string $productId): void
     {
         $this->productId = $productId;
+    }
+
+    public function getCurrencyId(): ?string
+    {
+        return $this->currencyId;
+    }
+
+    public function setCurrencyId(?string $currencyId): void
+    {
+        $this->currencyId = $currencyId;
+    }
+
+    public function getCurrency(): ?CurrencyEntity
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?CurrencyEntity $currency): void
+    {
+        $this->currency = $currency;
     }
 }

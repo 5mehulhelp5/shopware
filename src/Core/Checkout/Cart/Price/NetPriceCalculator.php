@@ -58,7 +58,8 @@ class NetPriceCalculator
             $definition->getQuantity(),
             $reference,
             $this->calculateListPrice($unitPrice, $definition, $config),
-            $this->calculateRegulationPrice($definition, $config)
+            $this->calculateRegulationPrice($definition, $config),
+            $definition->getCurrency()
         );
     }
 

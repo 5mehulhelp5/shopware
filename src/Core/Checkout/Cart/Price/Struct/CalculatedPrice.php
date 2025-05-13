@@ -7,6 +7,7 @@ use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Struct\Struct;
 use Shopware\Core\Framework\Util\FloatComparator;
+use Shopware\Core\System\Currency\CurrencyEntity;
 
 #[Package('checkout')]
 class CalculatedPrice extends Struct
@@ -19,7 +20,8 @@ class CalculatedPrice extends Struct
         protected int $quantity = 1,
         protected ?ReferencePrice $referencePrice = null,
         protected ?ListPrice $listPrice = null,
-        protected ?RegulationPrice $regulationPrice = null
+        protected ?RegulationPrice $regulationPrice = null,
+        protected ?CurrencyEntity $currency = null
     ) {
         $this->unitPrice = FloatComparator::cast($unitPrice);
         $this->totalPrice = FloatComparator::cast($totalPrice);
@@ -70,6 +72,16 @@ class CalculatedPrice extends Struct
         return $this->regulationPrice;
     }
 
+    public function getCurrency(): ?CurrencyEntity
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?CurrencyEntity $currency): void
+    {
+        $this->currency = $currency;
+    }
+
     public function getApiAlias(): string
     {
         return 'calculated_price';
@@ -79,10 +91,11 @@ class CalculatedPrice extends Struct
      * Changing a price should always be a full change, otherwise you have
      * mismatching information regarding the unit, total and tax values.
      */
-    public function overwrite(float $unitPrice, float $totalPrice, CalculatedTaxCollection $taxes): void
+    public function overwrite(float $unitPrice, float $totalPrice, CalculatedTaxCollection $taxes, CurrencyEntity $currencyEntity): void
     {
-        $this->unitPrice = $unitPrice;
-        $this->totalPrice = $totalPrice;
+        $this->unitPrice = FloatComparator::cast($unitPrice);
+        $this->totalPrice = FloatComparator::cast($totalPrice);
         $this->calculatedTaxes = $taxes;
+        $this->currency = $currencyEntity;
     }
 }

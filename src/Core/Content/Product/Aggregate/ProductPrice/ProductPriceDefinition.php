@@ -18,6 +18,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Field\ReferenceVersionField;
 use Shopware\Core\Framework\DataAbstractionLayer\Field\VersionField;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\System\Currency\CurrencyDefinition;
 
 #[Package('inventory')]
 class ProductPriceDefinition extends EntityDefinition
@@ -65,8 +66,10 @@ class ProductPriceDefinition extends EntityDefinition
             (new PriceField('price', 'price'))->addFlags(new Required()),
             (new IntField('quantity_start', 'quantityStart'))->addFlags(new Required()),
             new IntField('quantity_end', 'quantityEnd'),
+            new FkField('currency_id', 'currencyId', CurrencyDefinition::class),
             (new ManyToOneAssociationField('product', 'product_id', ProductDefinition::class, 'id', false))->addFlags(new ReverseInherited('prices')),
             new ManyToOneAssociationField('rule', 'rule_id', RuleDefinition::class, 'id', false),
+            new ManyToOneAssociationField('currency', 'currency_id', CurrencyDefinition::class, 'id', false),
             new CustomFields(),
         ]);
     }
