@@ -114,6 +114,7 @@ import type { SettingsItems } from './app/store/settings-item.store';
 import type { ShopwareApps } from './app/store/shopware-apps.store';
 import type { System } from './app/store/system.store';
 import type { ModalsStore } from './app/store/modals.store';
+import type { MediaModalStore } from './app/store/media-modal.store';
 import type { MenuItemStore } from './app/store/menu-item.store';
 import type { NotificationStore } from './app/store/notification.store';
 import type { TabsStore } from './app/store/tabs.store';
@@ -410,6 +411,7 @@ declare global {
         swPromotionDetail: SwPromotionDetailStore;
         swFlow: SwFlowStore;
         swBulkEdit: SwBulkStore;
+        mediaModal: MediaModalStore;
     }
 
     /**
