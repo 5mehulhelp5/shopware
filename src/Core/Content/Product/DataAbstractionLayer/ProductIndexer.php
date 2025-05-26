@@ -109,6 +109,7 @@ class ProductIndexer extends EntityIndexer
             $this->getChildrenIds($ids)
         )));
 
+        dd($parentAndChildIdsToBeChunked);
         foreach (\array_chunk($parentAndChildIdsToBeChunked, self::UPDATE_IDS_CHUNK_SIZE) as $chunk) {
             $child = new ProductIndexingMessage($chunk, null, $event->getContext());
             $child->setIndexer($this->getName());

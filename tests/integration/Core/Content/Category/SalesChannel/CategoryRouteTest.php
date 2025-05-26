@@ -326,9 +326,6 @@ class CategoryRouteTest extends TestCase
             'salesChannelId' => $this->ids->get('sales-channel'),
             'currencyId' => Defaults::CURRENCY,
             'snippetSetId' => $this->getSnippetSetIdForLocale('en-GB'),
-            'measurementSystemId' => Uuid::fromStringToHex('metric'),
-            'lengthUnitId' => Uuid::fromStringToHex('metric-mm'),
-            'weightUnitId' => Uuid::fromStringToHex('metric-kg'),
         ];
 
         $url = 'http://localhost:8000';
@@ -351,9 +348,6 @@ class CategoryRouteTest extends TestCase
             'salesChannelId' => $this->ids->get('sales-channel'),
             'currencyId' => Defaults::CURRENCY,
             'snippetSetId' => $this->getSnippetSetIdForLocale('en-GB'),
-            'measurementSystemId' => Uuid::fromStringToHex('metric'),
-            'lengthUnitId' => Uuid::fromStringToHex('metric-mm'),
-            'weightUnitId' => Uuid::fromStringToHex('metric-kg'),
         ];
 
         $url = 'http://localhost:8000';
