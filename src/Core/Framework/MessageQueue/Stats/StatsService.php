@@ -2,6 +2,7 @@
 
 namespace Shopware\Core\Framework\MessageQueue\Stats;
 
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Adapter\Messenger\Stamp\SentAtStamp;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\MessageQueue\Stats\Entity\MessageStatsResponseEntity;
@@ -16,6 +17,7 @@ class StatsService
     public function __construct(
         private readonly AbstractStatsRepository $statsRepository,
         private readonly bool $enabled,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -33,17 +35,30 @@ class StatsService
 
     public function registerMessage(Envelope $envelope): void
     {
+        $this->logger->debug('Starting to register message', [
+            'message_class' => \get_class($envelope->getMessage()),
+        ]);
+
         if (!$this->enabled) {
+            $this->logger->debug('Message registration skipped - stats service is disabled');
+
             return;
         }
 
         $sentAtStamp = $envelope->last(SentAtStamp::class);
         if ($sentAtStamp === null) {
+            $this->logger->debug('Message registration skipped - missing SentAtStamp');
+
             return;
         }
 
         $timeInQueue = time() - $sentAtStamp->getSentAt()->getTimestamp();
         $messageFqcn = \get_class($envelope->getMessage());
         $this->statsRepository->updateMessageStats($messageFqcn, $timeInQueue);
+
+        $this->logger->debug('Message registration completed successfully', [
+            'message_class' => $messageFqcn,
+            'time_in_queue' => $timeInQueue,
+        ]);
     }
 }

@@ -4,6 +4,7 @@ namespace Shopware\Tests\Unit\Core\Framework\MessageQueue\Stats;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Adapter\Messenger\Stamp\SentAtStamp;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\MessageQueue\Stats\Entity\MessageStatsEntity;
@@ -39,7 +40,9 @@ class StatsServiceTest extends TestCase
         $repositoryMock->expects($this->once())
             ->method('getStats')
             ->willReturn($returnVal);
-        $service = new StatsService($repositoryMock, true);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repositoryMock, true, $loggerMock);
         $response = $service->getStats();
 
         static::assertTrue($response->enabled);
@@ -52,7 +55,9 @@ class StatsServiceTest extends TestCase
         $repositoryMock->expects($this->once())
             ->method('getStats')
             ->willReturn(null);
-        $service = new StatsService($repositoryMock, true);
+
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repositoryMock, true, $loggerMock);
         $response = $service->getStats();
 
         static::assertTrue($response->enabled);
@@ -65,7 +70,8 @@ class StatsServiceTest extends TestCase
         $repositoryMock->expects($this->never())
             ->method('getStats');
 
-        $service = new StatsService($repositoryMock, false);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repositoryMock, false, $loggerMock);
         $response = $service->getStats();
 
         static::assertFalse($response->enabled);
@@ -78,7 +84,8 @@ class StatsServiceTest extends TestCase
         $repository->expects($this->never())
             ->method('updateMessageStats');
 
-        $service = new StatsService($repository, true);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repository, true, $loggerMock);
         $envelope = new Envelope(new \stdClass());
 
         $service->registerMessage($envelope);
@@ -90,7 +97,8 @@ class StatsServiceTest extends TestCase
         $repository->expects($this->never())
             ->method('updateMessageStats');
 
-        $service = new StatsService($repository, false);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repository, false, $loggerMock);
         $envelope = new Envelope(new \stdClass(), [
             new SentAtStamp(new \DateTimeImmutable('@' . 123456789)),
         ]);
@@ -105,7 +113,6 @@ class StatsServiceTest extends TestCase
         ClockMock::withClockMock(true);
 
         $repository = $this->createMock(MySQLStatsRepository::class);
-
         $repository->expects($this->once())
             ->method('updateMessageStats')
             ->with(
@@ -113,7 +120,8 @@ class StatsServiceTest extends TestCase
                 static::equalTo(time() - 123456789),
             );
 
-        $service = new StatsService($repository, true);
+        $loggerMock = $this->createMock(LoggerInterface::class);
+        $service = new StatsService($repository, true, $loggerMock);
         $envelope = new Envelope(new \stdClass(), [
             new SentAtStamp(new \DateTimeImmutable('@' . 123456789)),
         ]);
