@@ -4,6 +4,7 @@ namespace Shopware\Tests\Unit\Core\Framework\Adapter\Messenger\Middleware;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Adapter\Messenger\Middleware\QueuedTimeMiddleware;
 use Shopware\Core\Framework\Adapter\Messenger\Stamp\SentAtStamp;
 use Shopware\Core\Framework\Log\Package;
@@ -19,9 +20,17 @@ use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 #[CoversClass(QueuedTimeMiddleware::class)]
 class QueuedTimeMiddlewareTest extends TestCase
 {
+    private LoggerInterface $logger;
+
+    protected function setUp(): void
+    {
+        $this->logger = $this->createMock(LoggerInterface::class);
+    }
+
     public function testAddsSentAtStampIfNonePresent(): void
     {
-        $middleware = new QueuedTimeMiddleware();
+        $sentAt = new \DateTimeImmutable('@123456789');
+        $middleware = new QueuedTimeMiddleware($this->logger);
         $envelope = new Envelope(new \stdClass());
 
         $resultingEnvelope = $middleware->handle($envelope, $this->prepareStack());
@@ -31,7 +40,7 @@ class QueuedTimeMiddlewareTest extends TestCase
     public function testDoesNotAddSentAtStampIfAlreadyPresent(): void
     {
         $sentAt = new \DateTimeImmutable('@123456789');
-        $middleware = new QueuedTimeMiddleware();
+        $middleware = new QueuedTimeMiddleware($this->logger);
         $envelope = new Envelope(new \stdClass(), [new SentAtStamp($sentAt)]);
 
         $resultingEnvelope = $middleware->handle($envelope, $this->prepareStack());
@@ -42,7 +51,7 @@ class QueuedTimeMiddlewareTest extends TestCase
 
     public function testDoesNotAddSentAtStampIfInReceiveStage(): void
     {
-        $middleware = new QueuedTimeMiddleware();
+        $middleware = new QueuedTimeMiddleware($this->logger);
         $envelope = new Envelope(new \stdClass(), [new ReceivedStamp('TestTransport')]);
 
         $resultingEnvelope = $middleware->handle($envelope, $this->prepareStack());
