@@ -35,19 +35,19 @@ class StatsService
 
     public function registerMessage(Envelope $envelope): void
     {
-        $this->logger->warning('Starting to register message', [
+        $this->logger->error('Starting to register message', [
             'message_class' => \get_class($envelope->getMessage()),
         ]);
 
         if (!$this->enabled) {
-            $this->logger->warning('Message registration skipped - stats service is disabled');
+            $this->logger->error('Message registration skipped - stats service is disabled');
 
             return;
         }
 
         $sentAtStamp = $envelope->last(SentAtStamp::class);
         if ($sentAtStamp === null) {
-            $this->logger->warning('Message registration skipped - missing SentAtStamp');
+            $this->logger->error('Message registration skipped - missing SentAtStamp');
 
             return;
         }
@@ -56,7 +56,7 @@ class StatsService
         $messageFqcn = \get_class($envelope->getMessage());
         $this->statsRepository->updateMessageStats($messageFqcn, $timeInQueue);
 
-        $this->logger->warning('Message registration completed successfully', [
+        $this->logger->error('Message registration completed successfully', [
             'message_class' => $messageFqcn,
             'time_in_queue' => $timeInQueue,
         ]);
