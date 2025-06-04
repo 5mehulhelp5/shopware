@@ -16,6 +16,7 @@
         <service id="Shopware\Core\Framework\MessageQueue\Subscriber\MessageQueueStatsSubscriber">
             <argument type="service" id="shopware.increment.gateway.registry"/>
             <argument type="service" id="Shopware\Core\Framework\MessageQueue\Stats\StatsService"/>
+            <argument type="service" id="logger"/>
 
             <tag name="kernel.event_subscriber"/>
         </service>

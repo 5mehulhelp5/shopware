@@ -5,6 +5,7 @@ namespace Shopware\Tests\Unit\Core\Framework\MessageQueue\Subscriber;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Adapter\Messenger\Stamp\SentAtStamp;
 use Shopware\Core\Framework\Increment\AbstractIncrementer;
 use Shopware\Core\Framework\Increment\IncrementGatewayRegistry;
@@ -29,14 +30,18 @@ class MessageQueueStatsSubscriberTest extends TestCase
 
     private StatsService&MockObject $statsService;
 
+    private LoggerInterface&MockObject $logger;
+
     protected function setUp(): void
     {
         $this->gatewayRegistry = $this->createMock(IncrementGatewayRegistry::class);
         $this->statsService = $this->createMock(StatsService::class);
         $this->incrementer = $this->createMock(AbstractIncrementer::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
         $this->subscriber = new MessageQueueStatsSubscriber(
             $this->gatewayRegistry,
             $this->statsService,
+            $this->logger
         );
     }
 

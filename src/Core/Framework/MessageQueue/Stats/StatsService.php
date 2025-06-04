@@ -23,6 +23,10 @@ class StatsService
 
     public function getStats(): MessageStatsResponseEntity
     {
+        $this->logger->error('MessageStats: Fetching message stats', [
+            'enabled' => $this->enabled,
+        ]);
+
         if (!$this->enabled) {
             return new MessageStatsResponseEntity(enabled: false);
         }
@@ -35,19 +39,19 @@ class StatsService
 
     public function registerMessage(Envelope $envelope): void
     {
-        $this->logger->error('Starting to register message', [
+        $this->logger->error('MessageStats: Starting to register message', [
             'message_class' => \get_class($envelope->getMessage()),
         ]);
 
         if (!$this->enabled) {
-            $this->logger->error('Message registration skipped - stats service is disabled');
+            $this->logger->error('MessageStats: Message registration skipped - stats service is disabled');
 
             return;
         }
 
         $sentAtStamp = $envelope->last(SentAtStamp::class);
         if ($sentAtStamp === null) {
-            $this->logger->error('Message registration skipped - missing SentAtStamp');
+            $this->logger->error('MessageStats: Message registration skipped - missing SentAtStamp');
 
             return;
         }
@@ -56,7 +60,7 @@ class StatsService
         $messageFqcn = \get_class($envelope->getMessage());
         $this->statsRepository->updateMessageStats($messageFqcn, $timeInQueue);
 
-        $this->logger->error('Message registration completed successfully', [
+        $this->logger->error('MessageStats: Message registration completed successfully', [
             'message_class' => $messageFqcn,
             'time_in_queue' => $timeInQueue,
         ]);

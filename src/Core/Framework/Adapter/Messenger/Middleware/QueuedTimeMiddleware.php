@@ -28,7 +28,7 @@ class QueuedTimeMiddleware implements MiddlewareInterface
             $now = new \DateTimeImmutable('@' . time());
             $envelope = $envelope->with(new SentAtStamp($now));
 
-            $this->logger->error('Added SentAtStamp to message', [
+            $this->logger->error('MessageStats: Added SentAtStamp to message', [
                 'message_class' => \get_class($envelope->getMessage()),
                 'sent_at' => $now->format('Y-m-d H:i:s'),
             ]);

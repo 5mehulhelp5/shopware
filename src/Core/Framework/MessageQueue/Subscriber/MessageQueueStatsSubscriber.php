@@ -2,6 +2,7 @@
 
 namespace Shopware\Core\Framework\MessageQueue\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Increment\IncrementGatewayRegistry;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\MessageQueue\Stats\StatsService;
@@ -22,7 +23,8 @@ class MessageQueueStatsSubscriber implements EventSubscriberInterface
      */
     public function __construct(
         private readonly IncrementGatewayRegistry $gatewayRegistry,
-        private readonly StatsService $statsService
+        private readonly StatsService $statsService,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -38,6 +40,11 @@ class MessageQueueStatsSubscriber implements EventSubscriberInterface
 
     public function onMessageFailed(WorkerMessageFailedEvent $event): void
     {
+        $this->logger->error('MessageStats: Processing failed message', [
+            'message_class' => $event->getEnvelope()->getMessage()::class,
+            'will_retry' => $event->willRetry(),
+        ]);
+
         if ($event->willRetry()) {
             return;
         }
@@ -47,6 +54,10 @@ class MessageQueueStatsSubscriber implements EventSubscriberInterface
 
     public function onMessageHandled(WorkerMessageHandledEvent $event): void
     {
+        $this->logger->error('MessageStats: Processing handled message', [
+            'message_class' => $event->getEnvelope()->getMessage()::class,
+        ]);
+
         $this->handle($event->getEnvelope(), false);
         $this->statsService->registerMessage($event->getEnvelope());
     }
