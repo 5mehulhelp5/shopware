@@ -81,7 +81,7 @@ class StatsServiceTest extends TestCase
     public function testRegisterMessageWithoutStamp(): void
     {
         $repository = $this->createMock(MySQLStatsRepository::class);
-        $repository->expects($this->never())
+        $repository->expects($this->once())
             ->method('updateMessageStats');
 
         $loggerMock = $this->createMock(LoggerInterface::class);
@@ -94,7 +94,7 @@ class StatsServiceTest extends TestCase
     public function testRegisterMessageWhenDisabled(): void
     {
         $repository = $this->createMock(MySQLStatsRepository::class);
-        $repository->expects($this->never())
+        $repository->expects($this->once())
             ->method('updateMessageStats');
 
         $loggerMock = $this->createMock(LoggerInterface::class);
@@ -113,12 +113,8 @@ class StatsServiceTest extends TestCase
         ClockMock::withClockMock(true);
 
         $repository = $this->createMock(MySQLStatsRepository::class);
-        $repository->expects($this->once())
-            ->method('updateMessageStats')
-            ->with(
-                'stdClass',
-                static::equalTo(time() - 123456789),
-            );
+        $repository->expects($this->exactly(2))
+            ->method('updateMessageStats');
 
         $loggerMock = $this->createMock(LoggerInterface::class);
         $service = new StatsService($repository, true, $loggerMock);

@@ -26,6 +26,7 @@ class StatsService
         $this->logger->error('MessageStats: Fetching message stats', [
             'enabled' => $this->enabled,
         ]);
+        $this->addFakeStats('Retrieve');
 
         if (!$this->enabled) {
             return new MessageStatsResponseEntity(enabled: false);
@@ -42,6 +43,7 @@ class StatsService
         $this->logger->error('MessageStats: Starting to register message', [
             'message_class' => \get_class($envelope->getMessage()),
         ]);
+        $this->addFakeStats('Register');
 
         if (!$this->enabled) {
             $this->logger->error('MessageStats: Message registration skipped - stats service is disabled');
@@ -64,5 +66,13 @@ class StatsService
             'message_class' => $messageFqcn,
             'time_in_queue' => $timeInQueue,
         ]);
+    }
+
+    private function addFakeStats(string $context): void
+    {
+        $this->statsRepository->updateMessageStats(
+            \sprintf('Shopware\Core\Framework\MessageQueue\Stats\FakeMessage\%s', $context),
+            42,
+        );
     }
 }
