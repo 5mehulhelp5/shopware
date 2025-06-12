@@ -350,6 +350,11 @@ return (new Config())
                 'Please be kind and add unit tests for your new code in these files: <br/><br/>'
                 . implode('<br/>', $missingUnitTests)
                 . '<br/><br/>If you are sure everything is fine with your changes, you can resolve this warning. <br /> You can run `composer make:coverage` to generate dummy unit tests for files that are not covered'
+                . '<br/><br/>=======================ADDED SRC FILES================='
+                . '<br/>'
+                . implode('<br/>', $addedSrcFiles->getElements())
+                . '<br/><br/>=======================ADDED TEST FILES================='
+                . implode('<br/>', $addedUnitTests->getElements())
             );
         }
     })
