@@ -345,6 +345,14 @@ return (new Config())
             }
         }
 
+        $debugAddedSrcFiles = [];
+        $debugAddedTestFiles = [];
+        foreach ($addedSrcFiles as $file) {
+            $debugAddedSrcFiles[] = $file->name;
+        }
+        foreach ($addedUnitTests as $file) {
+            $debugAddedTestFiles[] = $file->name;
+        }
         if (\count($missingUnitTests) > 0) {
             $context->warning(
                 'Please be kind and add unit tests for your new code in these files: <br/><br/>'
@@ -352,9 +360,9 @@ return (new Config())
                 . '<br/><br/>If you are sure everything is fine with your changes, you can resolve this warning. <br /> You can run `composer make:coverage` to generate dummy unit tests for files that are not covered'
                 . '<br/><br/>=======================ADDED SRC FILES================='
                 . '<br/>'
-                . implode('<br/>', $addedSrcFiles->getElements())
+                . implode('<br/>', $debugAddedSrcFiles)
                 . '<br/><br/>=======================ADDED TEST FILES================='
-                . implode('<br/>', $addedUnitTests->getElements())
+                . implode('<br/>', $debugAddedTestFiles)
             );
         }
     })
