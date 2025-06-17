@@ -20,6 +20,12 @@
         {% set galleryPosition = sliderConfig.galleryPosition.value %}
         {% set verticalAlign = sliderConfig.verticalAlign.value %}
         {% set zoomImageContainerSelector = sliderConfig.zoomImageContainerSelector.value %}
+        {% set storefrontTemplate = sliderConfig.storefrontTemplate.value %}
+    {% endif %}
+
+    {% if storefrontTemplate == 'bare' %}
+        {% sw_include '@Storefront/storefront/element/cms-element-carousel.html.twig' %}
+        {% return %}
     {% endif %}
 
     {% if fallbackImageTitle is not defined %}

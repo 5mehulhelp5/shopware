@@ -87,6 +87,10 @@ Shopware.Service('cmsService').registerCmsElement({
             source: 'static',
             value: false,
         },
+        storefrontTemplate: {
+            source: 'static',
+            value: 'default',
+        },
     },
     enrich: function enrich(slot, data) {
         if (Object.keys(data).length < 1) {

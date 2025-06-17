@@ -12,7 +12,11 @@
     * showDotNav (optional) - Show navigation dots underneath the carousel items.
 #}
 
-<div class="cms-block-image-carousel row" data-sw-carousel="true">
+{% set carouselComponent %}
+<div
+    class="cms-block-image-carousel row"
+    data-sw-carousel="true"
+>
 
     {#
         Thumbnail previews
@@ -42,7 +46,15 @@
         <div class="cms-block-image-carousel-inner">
             {% for image in element.data.sliderItems %}
                 <div class="cms-block-image-carousel-item" id="carousel-item-{{ loop.index }}">
-                    <img tabindex="0" src="{{ image.media.url }}" alt="{{ image.media.alt }}" loading="lazy">
+                    {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
+                        media: image.media,
+                        autoColumnSizes: false,
+                        attributes: {
+                            loading: 'lazy',
+                            'data-bs-toggle': 'modal',
+                            'data-bs-target': "#gallery-modal",
+                        }
+                    } -%}
                 </div>
             {% endfor %}
         </div>
@@ -71,6 +83,25 @@
                     <span class="visually-hidden">{{ loop.index }}</span>
                 </a>
             {%- endfor -%}
+        </div>
+    </div>
+</div>
+{% endset %}
+
+{{ carouselComponent }}
+
+{#
+    Full screen gallery
+    ===========================================
+#}
+<div class="modal fade preview-modal" id="gallery-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <button type="button" class="btn-close position-absolute top-0 end-0 z-5 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+
+            <div class="modal-body overflow-hidden">
+                {{ carouselComponent }}
+            </div>
         </div>
     </div>
 </div>

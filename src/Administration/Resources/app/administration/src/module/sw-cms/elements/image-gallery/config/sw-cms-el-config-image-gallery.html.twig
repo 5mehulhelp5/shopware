@@ -122,6 +122,27 @@
                     {% block sw_cms_element_image_gallery_config_settings_display_mode %}
                     <div class="sw-cms-el-config-image-gallery__setting-option">
 
+                        <mt-banner
+                            v-if="element.config.storefrontTemplate.value === 'bare'"
+                            title="Experimental"
+                            icon="flask"
+                            variant="info"
+                            style="grid-column: 1 / -1;"
+                        >
+                            The "Bare Slider" is an experimental slider component. It uses web technologies like <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type">CSS scroll-snap</a> in order to reduce JavaScript and improve accessibility.
+                            Please test in a development environment before using in production.
+                        </mt-banner>
+
+                        <mt-select
+                            v-model="element.config.storefrontTemplate.value"
+                            class="sw-cms-el-config-image-gallery__setting-template"
+                            label="Storefront template"
+                            help-text="Happy text"
+                            style="grid-column: 1 / -1;"
+                            :hideClearableButton="true"
+                            :options="[{ value: 'default', label: 'Default Slider (tiny-slider)' }, { value: 'bare', label: 'Bare Slider (CSS scroll-snap)' }]"
+                        />
+
                         {% block sw_cms_element_image_gallery_config_settings_display_mode_select %}
                         <mt-select
                             v-model="element.config.displayMode.value"

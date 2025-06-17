@@ -1,7 +1,10 @@
 .cms-block-image-carousel {
     --sw-cms-element-carousel-height: 450px;
-
     overflow: hidden;
+}
+
+.preview-modal .cms-block-image-carousel {
+    --sw-cms-element-carousel-height: calc(100vh - 2rem - 42px);
 }
 
 /*
@@ -26,6 +29,36 @@
     }
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+
+    &::scroll-button(*) {
+        position: absolute;
+        border: 1px solid var(--#{$prefix}border-color);
+        background: var(--#{$prefix}body-bg);
+        width: 40px;
+        height: 40px;
+        border-radius: var(--#{$prefix}border-radius-pill);
+        filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
+        transition: all 0.2s ease-in-out;
+        top: 50%;
+        transform: translateY(calc(-50% - 20px));
+        font-size: 1.4rem;
+
+        &:hover {
+            background: var(--#{$prefix}gray-100);
+            color: var(--#{$prefix}primary);
+            border-color: var(--#{$prefix}primary);
+        }
+    }
+
+    &::scroll-button(left) {
+        content: '\2190';
+        left: $grid-gutter-width;
+    }
+
+    &::scroll-button(right) {
+        content: '\2192';
+        right: $grid-gutter-width;
+    }
 }
 
 .cms-block-image-carousel-item {

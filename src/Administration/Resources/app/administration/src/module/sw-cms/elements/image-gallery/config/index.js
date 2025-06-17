@@ -224,6 +224,7 @@ export default {
             this.element.config.magnifierOverGallery.value = false;
             this.element.config.displayMode.value = 'contain';
             this.element.config.minHeight.value = '430px';
+            this.element.config.storefrontTemplate.value = 'default';
         },
 
         updateColumnWidth() {
