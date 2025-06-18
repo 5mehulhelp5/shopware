@@ -1,15 +1,15 @@
 /**
- * Carousel CMS element JS-plugin
+ * Bare slider CMS element JS-plugin
  * ===========================================
  * @experimental
  * @private
  *
- * A new carousel (aka slider) component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
+ * A new bare metal slider component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
  */
-export default class CarouselPlugin extends window.PluginBaseClass {
+export default class BareSliderPlugin extends window.PluginBaseClass {
 
     static options = {
-
+        componentName: 'cms-element-bare-slider',
     };
 
     /**
@@ -19,13 +19,13 @@ export default class CarouselPlugin extends window.PluginBaseClass {
     init() {
         this._slideIndex = 1;
 
-        this._dots = this.el.querySelectorAll('.cms-block-image-carousel-navigation-item');
-        this._dotsWrapper = this.el.querySelector('.cms-block-image-carousel-navigation');
-        this._thumbnailsContainer = this.el.querySelector('.cms-block-image-carousel-thumbnails');
-        this._thumbnails = this.el.querySelectorAll('.cms-block-image-carousel-thumbnail-item');
-        this._carouselItems = this.el.querySelectorAll('.cms-block-image-carousel-item');
-        this._prevButton = this.el.querySelector('.cms-element-carousel-arrow.prev');
-        this._nextButton = this.el.querySelector('.cms-element-carousel-arrow.next');
+        this._dots = this.el.querySelectorAll(`.${this.options.componentName}-navigation-item`);
+        this._dotsWrapper = this.el.querySelector(`.${this.options.componentName}-navigation`);
+        this._thumbnailsContainer = this.el.querySelector(`.${this.options.componentName}-thumbnails`);
+        this._thumbnails = this.el.querySelectorAll(`.${this.options.componentName}-thumbnail-item`);
+        this._carouselItems = this.el.querySelectorAll(`.${this.options.componentName}-item`);
+        this._prevButton = this.el.querySelector(`.${this.options.componentName}-arrow.prev`);
+        this._nextButton = this.el.querySelector(`.${this.options.componentName}-arrow.next`);
         this._totalItemCount = Array.from(this._carouselItems).length;
 
         this._registerEvents();

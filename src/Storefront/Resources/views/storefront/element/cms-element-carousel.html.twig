@@ -1,30 +1,30 @@
 {#
-    Carousel CMS element
+    Bare slider CMS element
     ===========================================
     @experimental
     @private
 
-    A new carousel (aka slider) component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
-
-    Properties:
-    * carouselItems (required) - The items that will be shown in the carousel, for example images.
-    * showArrowNav (optional) - Show prev and next buttons with arrows.
-    * showDotNav (optional) - Show navigation dots underneath the carousel items.
+    A new bare metal slider component that uses the CSS scroll-snap feature, less JavaScript and no tiny-slider library.
 #}
+
+{% set componentName = 'cms-element-bare-slider' %}
+{% set componentOptions = { componentName } %}
+{% set cssOnly = false %}
 
 {% set carouselComponent %}
 <div
-    class="cms-block-image-carousel row"
-    data-sw-carousel="true"
+    class="{{ componentName }} row g-4{% if cssOnly %} is-css-only{% endif %}"
+{#    data-bare-slider="true"#}
+{#    data-bare-slider-options="{{ componentOptions|json_encode }}"#}
 >
 
     {#
         Thumbnail previews
         ===========================================
     #}
-    <div class="cms-block-image-carousel-thumbnails col-md-auto d-none d-md-block">
+    <div class="{{ componentName }}-thumbnails col-md-auto d-none d-md-block">
         {%- for image in element.data.sliderItems -%}
-            <a href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}" class="cms-block-image-carousel-thumbnail-item{% if loop.index == 1 %} active{% endif %}">
+            <a href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}" class="{{ componentName }}-thumbnail-item{% if loop.index == 1 %} active{% endif %}">
                 {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
                     media: image.media,
                     sizes: {
@@ -38,14 +38,14 @@
         {%- endfor -%}
     </div>
 
-    <div class="col-md cms-element-carousel-items">
+    <div class="col-md {{ componentName }}-items">
         {#
             Carousel items
             ===========================================
         #}
-        <div class="cms-block-image-carousel-inner">
+        <div class="{{ componentName }}-inner">
             {% for image in element.data.sliderItems %}
-                <div class="cms-block-image-carousel-item" id="carousel-item-{{ loop.index }}">
+                <div class="{{ componentName }}-item" id="carousel-item-{{ loop.index }}">
                     {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
                         media: image.media,
                         autoColumnSizes: false,
@@ -63,26 +63,30 @@
             Arrow navigation
             ===========================================
         #}
-        <div class="cms-element-carousel-arrows">
-            <button class="cms-element-carousel-arrow prev" type="button">
-                {% sw_icon 'arrow-left' style { size: 'sm' } %}
-            </button>
+        {% if not cssOnly %}
+            <div class="{{ componentName }}-arrows">
+                <button class="{{ componentName }}-arrow prev" type="button">
+                    {% sw_icon 'arrow-left' style { size: 'sm' } %}
+                </button>
 
-            <button class="cms-element-carousel-arrow next" type="button">
-                {% sw_icon 'arrow-right' style { size: 'sm' } %}
-            </button>
-        </div>
+                <button class="{{ componentName }}-arrow next" type="button">
+                    {% sw_icon 'arrow-right' style { size: 'sm' } %}
+                </button>
+            </div>
+        {% endif %}
 
         {#
             Dot navigation
             ===========================================
         #}
-        <div class="cms-block-image-carousel-navigation">
-            {%- for image in element.data.sliderItems -%}
-                <a class="cms-block-image-carousel-navigation-item{% if loop.index == 1 %} active{% endif %}" href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}">
-                    <span class="visually-hidden">{{ loop.index }}</span>
-                </a>
-            {%- endfor -%}
+        <div class="{{ componentName }}-navigation">
+            {% if not cssOnly %}
+                {%- for image in element.data.sliderItems -%}
+                    <a class="{{ componentName }}-navigation-item{% if loop.index == 1 %} active{% endif %}" href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}">
+                        <span class="visually-hidden">{{ loop.index }}</span>
+                    </a>
+                {%- endfor -%}
+            {% endif %}
         </div>
     </div>
 </div>
@@ -94,7 +98,7 @@
     Full screen gallery
     ===========================================
 #}
-<div class="modal fade preview-modal" id="gallery-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade {{ componentName }}-preview-modal" id="gallery-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <button type="button" class="btn-close position-absolute top-0 end-0 z-5 m-3" data-bs-dismiss="modal" aria-label="Close"></button>

@@ -1,9 +1,11 @@
-.cms-block-image-carousel {
+$component-name: 'cms-element-bare-slider';
+
+.#{$component-name} {
     --sw-cms-element-carousel-height: 450px;
     overflow: hidden;
 }
 
-.preview-modal .cms-block-image-carousel {
+.#{$component-name}-preview-modal .#{$component-name} {
     --sw-cms-element-carousel-height: calc(100vh - 2rem - 42px);
 }
 
@@ -11,7 +13,7 @@
  * Carousel items
  * ===========================================
  */
-.cms-block-image-carousel-inner {
+.#{$component-name}-inner {
     position: relative;
     overflow-x: scroll;
     overflow-y: hidden;
@@ -29,39 +31,9 @@
     }
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
-
-    &::scroll-button(*) {
-        position: absolute;
-        border: 1px solid var(--#{$prefix}border-color);
-        background: var(--#{$prefix}body-bg);
-        width: 40px;
-        height: 40px;
-        border-radius: var(--#{$prefix}border-radius-pill);
-        filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
-        transition: all 0.2s ease-in-out;
-        top: 50%;
-        transform: translateY(calc(-50% - 20px));
-        font-size: 1.4rem;
-
-        &:hover {
-            background: var(--#{$prefix}gray-100);
-            color: var(--#{$prefix}primary);
-            border-color: var(--#{$prefix}primary);
-        }
-    }
-
-    &::scroll-button(left) {
-        content: '\2190';
-        left: $grid-gutter-width;
-    }
-
-    &::scroll-button(right) {
-        content: '\2192';
-        right: $grid-gutter-width;
-    }
 }
 
-.cms-block-image-carousel-item {
+.#{$component-name}-item {
     scroll-snap-align: start;
     flex: none;
     width: 100%;
@@ -77,7 +49,7 @@
     }
 }
 
-.cms-element-carousel-items {
+.#{$component-name}-items {
     position: relative;
 }
 
@@ -85,7 +57,7 @@
  * Arrow navigation
  * ===========================================
  */
-.cms-element-carousel-arrow {
+.#{$component-name}-arrow {
     position: absolute;
     border: 1px solid var(--#{$prefix}border-color);
     background: var(--#{$prefix}body-bg);
@@ -120,7 +92,7 @@
  * Thumbnail navigation
  * ===========================================
  */
-.cms-block-image-carousel-thumbnails {
+.#{$component-name}-thumbnails {
     max-height: var(--sw-cms-element-carousel-height);
     overflow-x: hidden;
     overflow-y: scroll;
@@ -143,7 +115,7 @@
     }
 }
 
-.cms-block-image-carousel-thumbnail-item {
+.#{$component-name}-thumbnail-item {
     width: 70px;
     height: 70px;
     border: 1px solid var(--#{$prefix}border-color);
@@ -169,14 +141,14 @@
  * Dot navigation
  * ===========================================
  */
-.cms-block-image-carousel-navigation {
+.#{$component-name}-navigation {
     display: flex;
     justify-content: center;
     padding: $spacer;
     gap: 0.2rem;
 }
 
-.cms-block-image-carousel-navigation-item {
+.#{$component-name}-navigation-item {
     display: block;
     width: 10px;
     height: 10px;
@@ -191,5 +163,75 @@
     &.active {
         background: var(--#{$prefix}primary);
         width: 24px;
+    }
+}
+
+/**
+ * CSS-only mode
+ *
+ */
+.#{$component-name}.is-css-only {
+    .#{$component-name}-item {
+        &::scroll-marker {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: var(--#{$prefix}gray-600);
+            border-radius: var(--#{$prefix}border-radius-pill);
+            content: "";
+            transition: width 0.15s ease-in-out, background 0.15s ease-in-out;
+
+            &:target-current {
+                background-color: var(--#{$prefix}primary);
+                width: 24px;
+            }
+        }
+    }
+
+    .#{$component-name}-inner {
+        scroll-marker-group: after;
+        anchor-name: --bareSlider;
+
+        &::scroll-button(*) {
+            position: absolute;
+            border: 1px solid var(--#{$prefix}border-color);
+            background: var(--#{$prefix}body-bg);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--#{$prefix}border-radius-pill);
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15));
+            transition: all 0.2s ease-in-out;
+            top: 50%;
+            transform: translateY(calc(-50% - 20px));
+            font-size: 1.4rem;
+
+            &:hover {
+                background: var(--#{$prefix}gray-100);
+                color: var(--#{$prefix}primary);
+                border-color: var(--#{$prefix}primary);
+            }
+        }
+
+        &::scroll-button(left) {
+            content: '\2190';
+            left: $grid-gutter-width;
+        }
+
+        &::scroll-button(right) {
+            content: '\2192';
+            right: $grid-gutter-width;
+        }
+
+        &::scroll-marker-group {
+            /* From the previous example */
+            margin-top: 0.5rem;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            gap: 0.2rem;
+
+            position-anchor: --bareSlider;
+            justify-self: anchor-center;
+        }
     }
 }
