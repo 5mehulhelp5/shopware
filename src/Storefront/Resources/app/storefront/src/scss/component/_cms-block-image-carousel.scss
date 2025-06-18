@@ -1,12 +1,15 @@
 $component-name: 'cms-element-bare-slider';
 
 .#{$component-name} {
-    --sw-cms-element-carousel-height: 450px;
+    --bare-slider-height: 450px;
+    --bare-slider-thumbnail-width: 70px;
+    --bare-slider-thumbnail-height: 70px;
+
     overflow: hidden;
 }
 
 .#{$component-name}-preview-modal .#{$component-name} {
-    --sw-cms-element-carousel-height: calc(100vh - 2rem - 42px);
+    --bare-slider-height: calc(100vh - 2rem - 42px);
 }
 
 /*
@@ -17,7 +20,7 @@ $component-name: 'cms-element-bare-slider';
     position: relative;
     overflow-x: scroll;
     overflow-y: hidden;
-    height: var(--sw-cms-element-carousel-height);
+    height: var(--bare-slider-height);
     display: flex;
 
     // Scroll snap
@@ -93,9 +96,7 @@ $component-name: 'cms-element-bare-slider';
  * ===========================================
  */
 .#{$component-name}-thumbnails {
-    max-height: var(--sw-cms-element-carousel-height);
-    overflow-x: hidden;
-    overflow-y: scroll;
+    max-height: var(--bare-slider-height);
 
     &::-webkit-scrollbar {
         width: 4px;
@@ -116,8 +117,8 @@ $component-name: 'cms-element-bare-slider';
 }
 
 .#{$component-name}-thumbnail-item {
-    width: 70px;
-    height: 70px;
+    width: var(--bare-slider-thumbnail-width);
+    height: var(--bare-slider-thumbnail-height);
     border: 1px solid var(--#{$prefix}border-color);
     padding: 0.3rem;
     margin-bottom: $spacer-sm;
@@ -168,7 +169,6 @@ $component-name: 'cms-element-bare-slider';
 
 /**
  * CSS-only mode
- *
  */
 .#{$component-name}.is-css-only {
     .#{$component-name}-item {

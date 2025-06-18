@@ -21,12 +21,17 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
 
         this._dots = this.el.querySelectorAll(`.${this.options.componentName}-navigation-item`);
         this._dotsWrapper = this.el.querySelector(`.${this.options.componentName}-navigation`);
+
         this._thumbnailsContainer = this.el.querySelector(`.${this.options.componentName}-thumbnails`);
         this._thumbnails = this.el.querySelectorAll(`.${this.options.componentName}-thumbnail-item`);
-        this._carouselItems = this.el.querySelectorAll(`.${this.options.componentName}-item`);
+
+        this._sliderItems = this.el.querySelectorAll(`.${this.options.componentName}-item`);
+        this._sliderItemsScrollContainer = this.el.querySelector(`.${this.options.componentName}-inner`);
+
         this._prevButton = this.el.querySelector(`.${this.options.componentName}-arrow.prev`);
         this._nextButton = this.el.querySelector(`.${this.options.componentName}-arrow.next`);
-        this._totalItemCount = Array.from(this._carouselItems).length;
+
+        this._totalItemCount = Array.from(this._sliderItems).length;
 
         this._registerEvents();
     }
@@ -40,6 +45,7 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
         this._thumbnails.forEach(thumb => thumb.addEventListener('click', this._slideTo.bind(this)));
         this._nextButton.addEventListener('click', this._slideNext.bind(this));
         this._prevButton.addEventListener('click', this._slidePrev.bind(this));
+        this._sliderItemsScrollContainer.addEventListener('scrollsnapchange', this._observeScrollSnap.bind(this));
     }
 
     /**
@@ -51,9 +57,7 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
             return;
         }
 
-        this._slideIndex = this._slideIndex + 1;
-
-        this._doSlide(this._slideIndex);
+        this._doSlide(this._slideIndex + 1);
     }
 
     _slidePrev() {
@@ -61,9 +65,7 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
             return;
         }
 
-        this._slideIndex = this._slideIndex - 1;
-
-        this._doSlide(this._slideIndex);
+        this._doSlide(this._slideIndex - 1);
     }
 
     /**
@@ -87,9 +89,10 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
      *
      * @private
      * @param {Number} index
+     * @param {String} behavior
      * @returns void
      */
-    _doSlide(index) {
+    _doSlide(index, behavior = 'smooth') {
         const targetEl = this.el.querySelector(`#carousel-item-${index}`);
 
         if (!targetEl) {
@@ -99,7 +102,7 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
         targetEl.scrollIntoView({
             block: 'nearest',
             inline: 'nearest',
-            behavior: 'smooth',
+            behavior: behavior,
         });
 
         this._updateActiveDot(index);
@@ -138,5 +141,26 @@ export default class BareSliderPlugin extends window.PluginBaseClass {
             inline: 'nearest',
             behavior: 'smooth',
         });
+    }
+
+    /**
+     * Observe if the scrolling container has scrolled to another element.
+     *
+     * @param event
+     * @private
+     */
+    _observeScrollSnap(event) {
+        const targetIndex = Number(event.snapTargetInline?.dataset.index);
+
+        if (!targetIndex) {
+            return;
+        }
+
+        // Update the current slide index after the scroll-snap
+        this._slideIndex = targetIndex;
+
+        // Update the navigation active states
+        this._updateActiveDot(this._slideIndex);
+        this._updateActiveThumbnail(this._slideIndex);
     }
 }

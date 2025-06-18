@@ -11,20 +11,26 @@
 {% set componentOptions = { componentName } %}
 {% set cssOnly = false %}
 
+{% set thumbnailsHorizontal = false %}
+
 {% set carouselComponent %}
 <div
-    class="{{ componentName }} row g-4{% if cssOnly %} is-css-only{% endif %}"
-{#    data-bare-slider="true"#}
-{#    data-bare-slider-options="{{ componentOptions|json_encode }}"#}
+    class="{{ componentName }} row gx-4 {% if cssOnly %} is-css-only{% endif %}"
+    data-bare-slider="true"
+    data-bare-slider-options="{{ componentOptions|json_encode }}"
 >
 
     {#
         Thumbnail previews
         ===========================================
     #}
-    <div class="{{ componentName }}-thumbnails col-md-auto d-none d-md-block">
+    <div class="{{ componentName }}-thumbnails {% if thumbnailsHorizontal %}col-12{% else %}col-md-auto d-none d-md-block overflow-x-hidden overflow-y-scroll{% endif %}">
         {%- for image in element.data.sliderItems -%}
-            <a href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}" class="{{ componentName }}-thumbnail-item{% if loop.index == 1 %} active{% endif %}">
+            <a
+                href="#carousel-item-{{ loop.index }}"
+                data-slide-to="{{ loop.index }}"
+                class="{{ componentName }}-thumbnail-item{% if loop.index == 1 %} active{% endif %}"
+            >
                 {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
                     media: image.media,
                     sizes: {
@@ -38,14 +44,18 @@
         {%- endfor -%}
     </div>
 
-    <div class="col-md {{ componentName }}-items">
+    <div class="{{ componentName }}-items {% if thumbnailsHorizontal %}col-12{% else %}col-md{% endif%}">
         {#
             Carousel items
             ===========================================
         #}
-        <div class="{{ componentName }}-inner">
+        <ul class="{{ componentName }}-inner list-unstyled m-0">
             {% for image in element.data.sliderItems %}
-                <div class="{{ componentName }}-item" id="carousel-item-{{ loop.index }}">
+                <li
+                    class="{{ componentName }}-item"
+                    id="carousel-item-{{ loop.index }}"
+                    data-index="{{ loop.index }}"
+                >
                     {%- sw_thumbnails 'gallery-slider-image-thumbnails' with {
                         media: image.media,
                         autoColumnSizes: false,
@@ -55,9 +65,9 @@
                             'data-bs-target': "#gallery-modal",
                         }
                     } -%}
-                </div>
+                </li>
             {% endfor %}
-        </div>
+        </ul>
 
         {#
             Arrow navigation
@@ -65,11 +75,17 @@
         #}
         {% if not cssOnly %}
             <div class="{{ componentName }}-arrows">
-                <button class="{{ componentName }}-arrow prev" type="button">
+                <button
+                    class="{{ componentName }}-arrow prev"
+                    type="button"
+                >
                     {% sw_icon 'arrow-left' style { size: 'sm' } %}
                 </button>
 
-                <button class="{{ componentName }}-arrow next" type="button">
+                <button
+                    class="{{ componentName }}-arrow next"
+                    type="button"
+                >
                     {% sw_icon 'arrow-right' style { size: 'sm' } %}
                 </button>
             </div>
@@ -82,7 +98,11 @@
         <div class="{{ componentName }}-navigation">
             {% if not cssOnly %}
                 {%- for image in element.data.sliderItems -%}
-                    <a class="{{ componentName }}-navigation-item{% if loop.index == 1 %} active{% endif %}" href="#carousel-item-{{ loop.index }}" data-slide-to="{{ loop.index }}">
+                    <a
+                        class="{{ componentName }}-navigation-item{% if loop.index == 1 %} active{% endif %}"
+                        href="#carousel-item-{{ loop.index }}"
+                        data-slide-to="{{ loop.index }}"
+                    >
                         <span class="visually-hidden">{{ loop.index }}</span>
                     </a>
                 {%- endfor -%}
