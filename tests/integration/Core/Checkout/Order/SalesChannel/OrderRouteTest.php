@@ -18,12 +18,14 @@ use Shopware\Core\Checkout\Order\Aggregate\OrderDelivery\OrderDeliveryStates;
 use Shopware\Core\Checkout\Order\Aggregate\OrderTransaction\OrderTransactionStates;
 use Shopware\Core\Checkout\Order\OrderCollection;
 use Shopware\Core\Checkout\Order\OrderStates;
+use Shopware\Core\Checkout\Order\SalesChannel\OrderRoute;
 use Shopware\Core\Checkout\Payment\PaymentMethodCollection;
 use Shopware\Core\Checkout\Payment\PaymentMethodEntity;
 use Shopware\Core\Content\MailTemplate\Service\Event\MailSentEvent;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\PartialEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Pricing\CashRoundingConfig;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
@@ -38,12 +40,15 @@ use Shopware\Core\System\Country\CountryCollection;
 use Shopware\Core\System\Country\CountryEntity;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextFactory;
 use Shopware\Core\System\SalesChannel\Context\SalesChannelContextPersister;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextService;
+use Shopware\Core\System\SalesChannel\Context\SalesChannelContextServiceParameters;
 use Shopware\Core\System\StateMachine\Loader\InitialStateIdLoader;
 use Shopware\Core\Test\Integration\Traits\Promotion\PromotionIntegrationTestBehaviour;
 use Shopware\Core\Test\Integration\Traits\Promotion\PromotionTestFixtureBehaviour;
 use Shopware\Core\Test\TestDefaults;
 use Shopware\Storefront\Controller\AccountOrderController;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -167,7 +172,7 @@ class OrderRouteTest extends TestCase
         static::assertArrayHasKey('elements', $response['orders']);
         static::assertArrayHasKey(0, $response['orders']['elements']);
         static::assertArrayHasKey('id', $response['orders']['elements'][0]);
-        static::assertEquals($this->orderId, $response['orders']['elements'][0]['id']);
+        static::assertSame($this->orderId, $response['orders']['elements'][0]['id']);
     }
 
     public function testGetOrderGuest(): void
@@ -211,7 +216,7 @@ class OrderRouteTest extends TestCase
         static::assertArrayHasKey('elements', $response['orders']);
         static::assertArrayHasKey(0, $response['orders']['elements']);
         static::assertArrayHasKey('id', $response['orders']['elements'][0]);
-        static::assertEquals($this->orderId, $response['orders']['elements'][0]['id']);
+        static::assertSame($this->orderId, $response['orders']['elements'][0]['id']);
     }
 
     public function testGetOrderGuestWrongDeepLink(): void
@@ -358,7 +363,7 @@ class OrderRouteTest extends TestCase
         static::assertArrayHasKey('elements', $response['orders']);
         static::assertArrayHasKey(0, $response['orders']['elements']);
         static::assertArrayHasKey('id', $response['orders']['elements'][0]);
-        static::assertEquals($this->orderId, $response['orders']['elements'][0]['id']);
+        static::assertSame($this->orderId, $response['orders']['elements'][0]['id']);
         static::assertIsArray($response);
         static::assertArrayHasKey('paymentChangeable', $response);
         static::assertCount(1, $response['paymentChangeable']);
@@ -393,7 +398,7 @@ class OrderRouteTest extends TestCase
         static::assertNotNull($order);
         static::assertNotNull($transactions = $order->getTransactions());
         static::assertNotNull($transaction = $transactions->last());
-        static::assertEquals($this->defaultPaymentMethodId, $transaction->getPaymentMethodId());
+        static::assertSame($this->defaultPaymentMethodId, $transaction->getPaymentMethodId());
     }
 
     public function testSetAnotherPaymentMethodToOrder(): void
@@ -514,7 +519,7 @@ class OrderRouteTest extends TestCase
         $response = json_decode((string) $this->browser->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
         static::assertArrayHasKey('technicalName', $response);
-        static::assertEquals('cancelled', $response['technicalName']);
+        static::assertSame('cancelled', $response['technicalName']);
     }
 
     public function testOrderSalesChannelRestriction(): void
@@ -557,8 +562,37 @@ class OrderRouteTest extends TestCase
         static::assertArrayHasKey(0, $response['orders']['elements']);
         static::assertCount(1, $response['orders']['elements']);
         static::assertArrayHasKey('id', $response['orders']['elements'][0]);
-        static::assertEquals($this->orderId, $response['orders']['elements'][0]['id']);
-        static::assertEquals(TestDefaults::SALES_CHANNEL, $response['orders']['elements'][0]['salesChannelId']);
+        static::assertSame($this->orderId, $response['orders']['elements'][0]['id']);
+        static::assertSame(TestDefaults::SALES_CHANNEL, $response['orders']['elements'][0]['salesChannelId']);
+    }
+
+    public function testPartialEntityLoading(): void
+    {
+        $parameters = new SalesChannelContextServiceParameters(
+            TestDefaults::SALES_CHANNEL,
+            $this->browser->getServerParameter('HTTP_SW_CONTEXT_TOKEN'),
+            customerId: $this->customerId,
+        );
+        $salesChannelContext = $this->getContainer()->get(SalesChannelContextService::class)->get($parameters);
+
+        $criteria = new Criteria([$this->orderId]);
+        $criteria->addFields(['currencyId']);
+
+        $orders = $this->getContainer()
+            ->get(OrderRoute::class)
+            ->load(new Request(), $salesChannelContext, $criteria)
+            ->getOrders();
+
+        static::assertCount(1, $orders);
+
+        $order = $orders->first();
+
+        static::assertInstanceOf(PartialEntity::class, $order);
+        static::assertEquals([
+            'id' => $this->orderId,
+            'versionId' => Defaults::LIVE_VERSION,
+            'currencyId' => Defaults::CURRENCY,
+        ], $order->all());
     }
 
     protected function getValidPaymentMethods(): PaymentMethodCollection

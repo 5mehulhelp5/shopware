@@ -414,7 +414,22 @@ class AppLifecycleTest extends TestCase
             ],
             'customFieldSets' => [
                 [
-                    'name' => 'test',
+                    'name' => 'custom_field_test',
+                    'customFields' => [
+                        [
+                            'name' => 'bla_test2',
+                            'type' => 'text',
+                        ],
+                    ],
+                ],
+                [
+                    'name' => 'custom_field_test', // same name used twice, sets should be deleted and recreated
+                    'customFields' => [
+                        [
+                            'name' => 'bla_test',
+                            'type' => 'text',
+                        ],
+                    ],
                 ],
             ],
             'aclRole' => [
@@ -515,7 +530,7 @@ class AppLifecycleTest extends TestCase
             $appEntity->getIcon()
         );
         static::assertSame('1.0.0', $appEntity->getVersion());
-        static::assertNotEquals('test', $appEntity->getTranslation('label'));
+        static::assertNotSame('test', $appEntity->getTranslation('label'));
         static::assertTrue($appEntity->getAllowDisable());
 
         $this->assertDefaultActionButtons();
@@ -710,7 +725,7 @@ class AppLifecycleTest extends TestCase
         );
         static::assertSame('1.0.0', $appEntity->getVersion());
         static::assertSame('https://base-url.com', $appEntity->getBaseAppUrl());
-        static::assertNotEquals('test', $appEntity->getTranslation('label'));
+        static::assertNotSame('test', $appEntity->getTranslation('label'));
         static::assertTrue($appEntity->getAllowDisable());
 
         $this->assertDefaultActionButtons();

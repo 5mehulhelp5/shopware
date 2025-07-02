@@ -14,6 +14,9 @@ use Symfony\Component\Finder\Finder;
 #[Package('discovery')]
 class SnippetFinder implements SnippetFinderInterface
 {
+    /**
+     * @deprecated tag:v6.8.0 - Will be removed without replacement
+     */
     public const ALLOWED_INTERSECTING_FIRST_LEVEL_SNIPPET_KEYS = [
         'sw-flow-custom-event',
     ];
@@ -53,12 +56,12 @@ class SnippetFinder implements SnippetFinderInterface
 
         foreach ($activePlugins as $plugin) {
             $pluginPath = $plugin->getPath() . '/Resources/app/administration/src';
-            if (file_exists($pluginPath)) {
+            if (\is_dir($pluginPath)) {
                 $paths[] = $pluginPath;
             }
 
             $meteorPluginPath = $plugin->getPath() . '/Resources/app/meteor-app';
-            if (file_exists($meteorPluginPath)) {
+            if (\is_dir($meteorPluginPath)) {
                 $paths[] = $meteorPluginPath;
             }
         }
@@ -91,12 +94,12 @@ class SnippetFinder implements SnippetFinderInterface
             $meteorBundlePath = $bundle->getPath() . '/Resources/app/meteor-app';
 
             // Add the bundle path if it exists
-            if (file_exists($bundlePath)) {
+            if (\is_dir($bundlePath)) {
                 $paths[] = $bundlePath;
             }
 
             // Add the meteor bundle path if it exists
-            if (file_exists($meteorBundlePath)) {
+            if (\is_dir($meteorBundlePath)) {
                 $paths[] = $meteorBundlePath;
             }
         }
@@ -174,24 +177,7 @@ class SnippetFinder implements SnippetFinderInterface
         $appSnippets = array_replace_recursive([], ...$decodedSnippets);
         $appSnippets = $this->sanitizeAppSnippets($appSnippets);
 
-        $this->validateAppSnippets($existingSnippets, $appSnippets);
-
         return $appSnippets;
-    }
-
-    /**
-     * @param array<string, mixed> $existingSnippets
-     * @param array<string, mixed> $appSnippets
-     */
-    private function validateAppSnippets(array $existingSnippets, array $appSnippets): void
-    {
-        $existingSnippetKeys = array_keys($existingSnippets);
-        $appSnippetKeys = array_keys($appSnippets);
-        $duplicatedKeys = $this->getInvalidIntersections($existingSnippetKeys, $appSnippetKeys);
-
-        if (!empty($duplicatedKeys)) {
-            throw SnippetException::duplicatedFirstLevelKey($duplicatedKeys);
-        }
     }
 
     /**
@@ -217,25 +203,5 @@ class SnippetFinder implements SnippetFinderInterface
         }
 
         return $sanitizedSnippets;
-    }
-
-    /**
-     * @param list<string> $snippetKeys
-     * @param list<string> $additionalSnippetKeys
-     *
-     * @return list<string>
-     */
-    private function getInvalidIntersections(array $snippetKeys, array $additionalSnippetKeys): array
-    {
-        $intersections = array_intersect($snippetKeys, $additionalSnippetKeys);
-
-        if (empty($intersections)) {
-            return [];
-        }
-
-        return array_values(array_filter(
-            $intersections,
-            fn ($key) => !\in_array($key, self::ALLOWED_INTERSECTING_FIRST_LEVEL_SNIPPET_KEYS, true)
-        ));
     }
 }
