@@ -20,6 +20,7 @@ class BulkEditBaseHandler {
         this.repositoryFactory = Shopware.Service('repositoryFactory');
         this.entityName = null;
         this.entityIds = [];
+        this.parentId = null;
 
         // Grouped sync payload by operator and entities
         this.groupedPayload = {
@@ -180,6 +181,11 @@ class BulkEditBaseHandler {
         // normalize selected association entities, eg: [{id: 'category_id_1'}, {id: 'category_id_2'},...]
         const changeValue = Array.isArray(change.value) ? change.value : [change.value];
         change.value = changeValue.filter(Boolean);
+
+        // Special handling for product visibilities with variants
+        if (entity === 'product_visibility' && change.type === bulkSyncTypes.REMOVE && this.parentId) {
+            await this._ensureParentVisibilitiesForVariants();
+        }
 
         if (isMappingField) {
             change.localKey = local;
@@ -563,6 +569,66 @@ class BulkEditBaseHandler {
         }
 
         return !types.isEqual(newValue, origin);
+    }
+
+    /**
+     * @private
+     *
+     * Ensure parent visibilities are copied to variants before processing REMOVE operations
+     */
+    async _ensureParentVisibilitiesForVariants() {
+        if (!this.parentId || this.entityIds.length === 0) {
+            return;
+        }
+
+        const repository = this.repositoryFactory.create('product_visibility');
+
+        // Get parent visibilities
+        const parentCriteria = new Criteria(1, 500);
+        parentCriteria.addFilter(Criteria.equals('productId', this.parentId));
+        const parentVisibilities = await repository.search(parentCriteria);
+
+        if (parentVisibilities.length === 0) {
+            return;
+        }
+
+        // Check which variants already have parent visibilities
+        const variantCriteria = new Criteria(1, 500);
+        variantCriteria.addFilter(Criteria.equalsAny('productId', this.entityIds));
+        const existingVariantVisibilities = await repository.search(variantCriteria);
+
+        // Create a map of existing variant visibilities by productId.salesChannelId
+        const existingMap = {};
+        existingVariantVisibilities.forEach(visibility => {
+            const key = `${visibility.productId}.${visibility.salesChannelId}`;
+            existingMap[key] = true;
+        });
+
+        // Prepare upsert payload for missing parent visibilities
+        const upsertPayload = [];
+        this.entityIds.forEach(variantId => {
+            parentVisibilities.forEach(parentVisibility => {
+                const key = `${variantId}.${parentVisibility.salesChannelId}`;
+                if (!existingMap[key]) {
+                    upsertPayload.push({
+                        productId: variantId,
+                        salesChannelId: parentVisibility.salesChannelId,
+                        visibility: parentVisibility.visibility,
+                    });
+                }
+            });
+        });
+
+        // Insert missing parent visibilities to variants
+        if (upsertPayload.length > 0) {
+            await this.syncService.sync({
+                'upsert-product_visibility': {
+                    action: 'upsert',
+                    entity: 'product_visibility',
+                    payload: upsertPayload,
+                },
+            });
+        }
     }
 }
 

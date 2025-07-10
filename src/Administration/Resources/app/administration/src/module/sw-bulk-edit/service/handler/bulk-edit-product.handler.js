@@ -21,8 +21,9 @@ class BulkEditProductHandler extends BulkEditBaseHandler {
         this.products = {};
     }
 
-    async bulkEdit(entityIds, payload, context) {
+    async bulkEdit(entityIds, payload, context, parentId = null) {
         this.entityIds = entityIds;
+        this.parentId = parentId;
         const taxId = payload.find((change) => change.field === 'taxId')?.value;
         const price = payload.find((change) => change.field === 'price')?.value;
         const purchasePrices = payload.find((change) => change.field === 'purchasePrices')?.value;

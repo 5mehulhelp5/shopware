@@ -1254,7 +1254,12 @@ export default {
             };
 
             const requests = payloadChunks.map((payload) => {
-                return this.bulkEditApiFactory.getHandler('product').bulkEdit(payload, this.bulkEditSelected, context);
+                return this.bulkEditApiFactory.getHandler('product').bulkEdit(
+                    payload,
+                    this.bulkEditSelected,
+                    context,
+                    this.$route.params.parentId,
+                );
             });
 
             this.bulkEditSelected = [];
