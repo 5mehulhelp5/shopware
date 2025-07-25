@@ -5,8 +5,9 @@ namespace Shopware\Elasticsearch\Admin\Indexer;
 use OpenSearchDSL\Search;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\IterableQuery;
-use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 use Shopware\Core\Framework\Log\Package;
 
 #[Package('inventory')]
@@ -49,5 +50,34 @@ abstract class AbstractAdminIndexer
     public function globalCriteria(string $term, Search $criteria): Search
     {
         return $criteria;
+    }
+
+    public function getSupportedSearchFields(): array
+    {
+        $supportedFields = [];
+
+        $mapping = $this->mapping([])['properties'] ?? [];
+        foreach ($mapping as $field => $type) {
+            if (array_key_exists('properties', $type) && !empty($type['properties'])) {
+                foreach (array_keys($type['properties']) as $property) {
+                    if ($property === '_count') {
+                        continue;
+                    }
+
+                    $supportedFields[] = $field . '.' . $property;
+
+                }
+
+                continue;
+            }
+
+            $supportedFields[] = $field;
+        }
+
+        foreach ($supportedFields as $field) {
+            $supportedFields[] = $this->getEntity() . '.' . $field;
+        }
+
+        return $supportedFields;
     }
 }
