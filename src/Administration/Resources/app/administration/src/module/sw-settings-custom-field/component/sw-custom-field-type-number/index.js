@@ -16,12 +16,12 @@ export default {
             },
             numberTypes: [
                 {
-                    id: 'int',
-                    name: this.$tc('sw-settings-custom-field.customField.detail.labelInt'),
+                    label: this.$tc('sw-settings-custom-field.customField.detail.labelInt'),
+                    value: 'int',
                 },
                 {
-                    id: 'float',
-                    name: this.$tc('sw-settings-custom-field.customField.detail.labelFloat'),
+                    label: this.$tc('sw-settings-custom-field.customField.detail.labelFloat'),
+                    value: 'float',
                 },
             ],
         };
