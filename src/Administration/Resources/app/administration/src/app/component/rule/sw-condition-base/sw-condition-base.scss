@@ -113,6 +113,10 @@ $sw-condition-color-border-default: $color-gray-500;
         gap: 4px;
         grid-template-columns: auto 1fr;
         width: 100%;
+
+        .sw-media-field {
+            margin-bottom: 0;
+        }
     }
 
     .sw-condition__value-content {
