@@ -19,16 +19,11 @@ export default {
     ],
 
     computed: {
-        /**
-         * Fetch custom fields that are related to the previously selected custom field set
-         * @returns {Object.Criteria}
-         */
         customFieldCriteria() {
-            const criteria = new Criteria(1, 25);
-            criteria.addAssociation('customFieldSet');
-            criteria.addFilter(Criteria.equals('customFieldSet.relations.entityName', 'product'));
-            criteria.addSorting(Criteria.sort('customFieldSet.name', 'ASC'));
-            return criteria;
+            return new Criteria(1, 25)
+                .addAssociation('customFieldSet')
+                .addFilter(Criteria.equals('customFieldSet.relations.entityName', 'product'))
+                .addSorting(Criteria.sort('customFieldSet.name', 'ASC'));
         },
 
         operator: {
@@ -52,6 +47,9 @@ export default {
             },
             set(renderedField) {
                 this.ensureValueExist();
+
+                console.log(renderedField);
+
                 this.condition.value = {
                     ...this.condition.value,
                     renderedField,
@@ -138,6 +136,7 @@ export default {
                 name: 'sw.settings.custom.field.detail',
                 params: { id: item.customFieldSetId },
             };
+
             const routeData = this.$router.resolve(route);
 
             return {
@@ -153,10 +152,6 @@ export default {
             return this.getInlineSnippet(item.customFieldSet.config.label) || item.customFieldSet.name;
         },
 
-        /**
-         * Clear any further field's values if no custom field has been selected
-         * @param id
-         */
         onFieldChange(id) {
             if (this.$refs.selectedField.resultCollection.has(id)) {
                 this.renderedField = this.$refs.selectedField.resultCollection.get(id);
