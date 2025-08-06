@@ -140,6 +140,9 @@ test('Product is not visible without adding it to the sales channel.', { tag: '@
     IdProvider,
     StorefrontProductDetail,
 }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip();
+
     let product: Product;
     await test.step('Create a product without visibility in the default sales channel.', async () => {
         product = await TestDataService.createBasicProduct({

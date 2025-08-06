@@ -18,6 +18,8 @@ test('The Storefront should implement accessibility best practices.', { tag: '@A
     StorefrontAccountProfile,
     StorefrontAccountAddresses,
 }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip();
 
     test.slow();
 

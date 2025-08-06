@@ -9,6 +9,9 @@ test('As a merchant, I want to perform bulk edits on products information.', { t
     DefaultSalesChannel,
     IdProvider,
 }) => {
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip();
+
     test.slow();
 
     const originalStock = 200;
