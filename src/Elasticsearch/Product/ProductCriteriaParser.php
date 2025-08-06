@@ -22,7 +22,6 @@ use Shopware\Elasticsearch\Framework\DataAbstractionLayer\CriteriaParser;
 #[Package('inventory')]
 class ProductCriteriaParser extends CriteriaParser
 {
-
     public function parseFilter(Filter $filter, EntityDefinition $definition, string $root, Context $context): BuilderInterface
     {
         if (!$definition instanceof ProductDefinition) {

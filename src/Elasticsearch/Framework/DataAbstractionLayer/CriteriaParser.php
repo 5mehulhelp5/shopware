@@ -823,7 +823,6 @@ class CriteriaParser
             );
         }
 
-
         if (\count($filter->getQueries()) === 1) {
             $bool->add(
                 $this->parseFilter($filter->getQueries()[0], $definition, $root, $context),

@@ -219,7 +219,7 @@ class ElasticsearchProductDefinition extends AbstractElasticsearchDefinition
                 parentCustomFields: ElasticsearchFieldMapper::translated(field: 'parentCustomFields', items: $translation, stripText: false),
                 context: $context
             );
-            
+
             $visibilities = ElasticsearchIndexingUtils::parseJson($item, 'visibilities');
 
             $visibilitiesFlatten = [];
