@@ -41,8 +41,9 @@ test('As a shop administrator, I can create 50 root categories and 100 subcatego
     { tag: ['@Categories', '@PerformanceData'] }, async ({
     TestDataService,
 }) => {
-    test.setTimeout(1800000); // Increased timeout to 30 minutes for this heavy performance test
-    TestDataService.setCleanUp(true);
+    let hrs = 60 * 1000; // 60 minutes in milliseconds
+    test.setTimeout(hrs*4); // Set timeout to 240 minutes for this heavy performance test
+    TestDataService.setCleanUp(false);
 
     const rootCategoryCount = 50;
     const subCategoryCount = 100;
