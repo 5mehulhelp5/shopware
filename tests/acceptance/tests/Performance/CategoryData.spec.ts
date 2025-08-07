@@ -41,7 +41,10 @@ test('As a shop administrator, I can create 50 root categories and 100 subcatego
     { tag: ['@Categories', '@PerformanceData'] }, async ({
     TestDataService,
 }) => {
-    let hrs = 60 * 1000; // 60 minutes in milliseconds
+    //log start time
+    console.log(`Test started at: ${new Date().toISOString()}`);
+    let sec = 60 * 1000; // 60 seconds in milliseconds
+    let hrs = 60 * 60 * 1000; // 60 minutes in milliseconds
     test.setTimeout(hrs*4); // Set timeout to 240 minutes for this heavy performance test
     TestDataService.setCleanUp(false);
 
