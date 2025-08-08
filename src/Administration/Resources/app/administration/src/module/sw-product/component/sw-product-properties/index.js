@@ -264,7 +264,10 @@ export default {
         },
 
         checkIfPropertiesExists() {
-            this.propertyOptionRepository.search(new Criteria(1, 1)).then((res) => {
+            const criteria = new Criteria(1, 1);
+            criteria.setTotalCountMode(0);
+
+            this.propertyOptionRepository.searchIds(criteria).then((res) => {
                 this.propertiesAvailable = res.total > 0;
             });
         },
