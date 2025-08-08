@@ -19,6 +19,7 @@ export default {
 
     mixins: [
         Mixin.getByName('listing'),
+        Mixin.getByName('notification'),
     ],
 
     data() {
@@ -71,9 +72,16 @@ export default {
         onConfirmDelete(id) {
             this.showDeleteModal = false;
 
-            return this.propertyRepository.delete(id).then(() => {
-                this.getList();
-            });
+            return this.propertyRepository
+                .delete(id)
+                .then(() => {
+                    this.getList();
+                })
+                .catch(() => {
+                    this.createNotificationError({
+                        message: this.$tc('sw-property.list.errorDelete'),
+                    });
+                });
         },
 
         onChangeLanguage() {
