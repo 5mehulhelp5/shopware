@@ -21,10 +21,12 @@ ENABLED_COLUMNS = {
     "description": True,
     "meta_title": True,
     "meta_description": True,
+    "products": True,  # Added 'products' column
 }
 
 # === 🧭 Top-Level Parent ID (for all mid categories)
-TOP_PARENT_ID = "0196156e3ecf729ea8b737e4911e99b9"
+TOP_PARENT_ID = "01983b11d12e71d1859626764f252977"
+PRODUCT_ID = "01983b16e4667063a3fb8ae4b2539715"  # Placeholder for product ID, if needed
 
 # === Storage
 MID_CATEGORIES = {}      # mid_id -> dict
@@ -76,14 +78,15 @@ def build_row(cat_id, parent_id, name_prefix, name, null_prob):
     row = {
         "id": cat_id,
         "parent_id": parent_id,
-        "active": 1,  # or random.choice([0, 1])
-        "type": "page",
-        "visible": 1,
+        "active": random.choice([0, 1]),
+        "type": random.choice(["page", "folder", "link"]),  # Randomly choose type
+        "visible": random.choice([0, 1]),
         "name": full_name,
         "external_link": maybe(null_prob, lambda: fake.url()),
         "description": fake.paragraph(nb_sentences=3),
         "meta_title": maybe(null_prob, lambda: fake.sentence(nb_words=6)),
         "meta_description": maybe(null_prob, lambda: fake.text(max_nb_chars=100)),
+        "products": PRODUCT_ID,
     }
 
     return [row[col] for col in ENABLED_COLUMNS if ENABLED_COLUMNS[col]]
