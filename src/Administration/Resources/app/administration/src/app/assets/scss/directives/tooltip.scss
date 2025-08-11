@@ -1,17 +1,16 @@
-@import "~scss/variables";
+@import '~scss/variables';
 
 $sw-tooltip-z-index: $z-index-tooltip;
 $sw-tooltip-color-background: var(--color-elevation-surface-floating);
 $sw-tooltip-color: var(--color-text-inverse-default);
 $sw-tooltip-border-radius: var(--border-radius-overlay);
-$sw-tooltip-color-light: $color-darkgray-200;
-$sw-tooltip-border-color-light: $color-gray-300;
 
 .sw-tooltip {
     position: absolute;
     z-index: $sw-tooltip-z-index;
 
-    &.sw-tooltip--dark {
+    &.sw-tooltip--dark,
+    &.sw-tooltip--light {
         background-color: $sw-tooltip-color-background;
         border-radius: $sw-tooltip-border-radius;
         color: $sw-tooltip-color;
@@ -20,10 +19,10 @@ $sw-tooltip-border-color-light: $color-gray-300;
         word-wrap: break-word;
 
         &::before {
-            content: "";
+            content: '';
             position: absolute;
-            height: 8px;
-            width: 8px;
+            height: var(--scale-size-8);
+            width: var(--scale-size-8);
             transform: rotate(45deg);
             background: $sw-tooltip-color-background;
         }
@@ -50,37 +49,6 @@ $sw-tooltip-border-color-light: $color-gray-300;
             top: 50%;
             margin-top: -4px;
             left: -4px;
-        }
-    }
-
-    &.sw-tooltip--light {
-        color: $sw-tooltip-color-light;
-        font-size: $font-size-xxs;
-        font-weight: $font-weight-regular;
-        letter-spacing: 0;
-        line-height: $line-height-xs;
-        width: auto !important;
-        height: auto !important;
-        padding: 5px 10px;
-        background: $sw-tooltip-color;
-        border: 1px solid $sw-tooltip-border-color-light;
-        box-shadow: 0 3px 6px 0 rgba(120, 138, 155, 50%);
-        border-radius: 4px;
-
-        &.sw-tooltip--top {
-            margin-top: 6px;
-        }
-
-        &.sw-tooltip--bottom {
-            margin-top: -4px;
-        }
-
-        &.sw-tooltip--left {
-            margin-left: 5px;
-        }
-
-        &.sw-tooltip--right {
-            margin-right: -5px;
         }
     }
 }
