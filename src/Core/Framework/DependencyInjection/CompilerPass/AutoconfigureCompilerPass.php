@@ -26,6 +26,7 @@ use Shopware\Core\Framework\Adapter\Twig\NamespaceHierarchy\TemplateNamespaceHie
 use Shopware\Core\Framework\DataAbstractionLayer\BulkEntityExtension;
 use Shopware\Core\Framework\DataAbstractionLayer\Dbal\ExceptionHandlerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityDefinition;
+use Shopware\Core\Framework\Webhook\Hookable\HookableEntityInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityExtension;
 use Shopware\Core\Framework\DataAbstractionLayer\FieldSerializer\FieldSerializerInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Indexing\EntityIndexer;
@@ -47,6 +48,10 @@ class AutoconfigureCompilerPass implements CompilerPassInterface
         $container
             ->registerForAutoconfiguration(EntityDefinition::class)
             ->addTag('shopware.entity.definition');
+
+        $container
+            ->registerForAutoconfiguration(HookableEntityInterface::class)
+            ->addTag('shopware.entity.hookable');
 
         $container
             ->registerForAutoconfiguration(SalesChannelDefinition::class)
