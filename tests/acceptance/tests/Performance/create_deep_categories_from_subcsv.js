@@ -27,11 +27,12 @@ function cleanEnvVar(value) {
   return value.toString().replace(/^['"]|['"];?$/g, '').trim();
 }
 
-const DEFAULT_CONCURRENCY = 4;          // how many concurrent API calls to make
+const DEFAULT_CONCURRENCY = 1;          // how many concurrent API calls to make
 const DEFAULT_DEPTH = 3;             // how many levels under the first-level (level 2..depth)
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
 const DEFAULT_RETRIES = 5;             // how many retries for API calls
-const DEFAULT_BACKOFF_MS = 500;      // initial backoff
+const DEFAULT_BACKOFF_MS = 2000;      // initial backoff
+const DEFAULT_API_DELAY_MS = 2000;     // delay between API calls to reduce server load
 
 // Logging levels
 const LOG_LEVELS = {
@@ -43,8 +44,8 @@ const LOG_LEVELS = {
 
 // Default retry strategies per endpoint
 const DEFAULT_RETRY_STRATEGIES = {
-  '/api/oauth/token': { retries: 3, backoffMs: 200, maxDelay: 5000 },
-  '/api/category': { retries: 4, backoffMs: 500, maxDelay: 10000 }
+  '/api/oauth/token': { retries: 3, backoffMs: 500, maxDelay: 5000 },
+  '/api/category': { retries: 5, backoffMs: 1000, maxDelay: 15000 }
 };
 
 // Performance metrics
@@ -244,13 +245,20 @@ function retryable(fn, options = {}) {
           throw err;
         }
         
-        const delay = Math.min(maxDelay, backoffMs * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100));
+        // Use longer delays for server errors (500, 502, 503, 504)
+        const isServerError = err.message.includes('500') || err.message.includes('502') || 
+                             err.message.includes('503') || err.message.includes('504');
+        const serverErrorMultiplier = isServerError ? 3 : 1;
+        
+        const delay = Math.min(maxDelay, (backoffMs * serverErrorMultiplier) * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100));
         if (logger) {
           logger.warn(`API call failed, retrying in ${delay}ms`, { 
             endpoint, 
             attempt, 
             error: err.message,
-            remainingRetries: retries - attempt + 1
+            remainingRetries: retries - attempt + 1,
+            isServerError,
+            delayMultiplier: serverErrorMultiplier
           });
         }
         await sleep(delay);
@@ -289,6 +297,22 @@ async function fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecre
 
   if (!res.ok) {
     const txt = await res.text();
+    const errorDetails = {
+      url: tokenUrl,
+      method: 'POST',
+      status: res.status,
+      statusText: res.statusText,
+      response: txt,
+      payload: {
+        grant_type: 'client_credentials',
+        client_id: clientId,
+        client_secret: clientSecret ? '[REDACTED]' : undefined,
+        scope: 'write'
+      }
+    };
+    if (logger) {
+      logger.error('Token request failed', errorDetails);
+    }
     throw new Error(`Token request failed: ${res.status} ${res.statusText}: ${txt}`);
   }
   const json = await res.json();
@@ -379,7 +403,36 @@ async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, l
 
   if (!res.ok) {
     const message = json && json.message ? json.message : text;
-    throw new Error(`API createCategory failed ${res.status} ${res.statusText}: ${message}`);
+    const errorDetails = {
+      url,
+      method: 'POST',
+      status: res.status,
+      statusText: res.statusText,
+      message,
+      response: text,
+      payload: {
+        ...payload,
+        // Redact sensitive information if any
+        id: payload.id,
+        parentId: payload.parentId,
+        name: payload.name
+      },
+      categoryId: payload.id,
+      categoryName: payload.name
+    };
+    
+    if (logger) {
+      logger.error('Category creation API call failed', errorDetails);
+    }
+    
+    // Provide more specific error messages for common issues
+    if (res.status === 500) {
+      throw new Error(`Server error (500) - possible overload. Try reducing concurrency. Details: ${JSON.stringify(errorDetails)}`);
+    } else if (res.status === 429) {
+      throw new Error(`Rate limit exceeded (429). Reduce concurrency or add delays. Details: ${JSON.stringify(errorDetails)}`);
+    } else {
+      throw new Error(`API createCategory failed ${res.status} ${res.statusText}: ${message}`);
+    }
   }
   return json;
 }
@@ -510,7 +563,7 @@ async function processParentRecord({
             const newId = uuidHex();
             // Build a shorter readable name to avoid 255 char limit: "L{lvl+1}-{b}-{short_timestamp}"
             const shortTimestamp = timestamp.slice(-8); // Use last 8 chars of timestamp
-            const newName = `L${lvl+1}-${b+1}-${shortTimestamp}`;
+            const newName = `L${lvl}-${b+1}-${shortTimestamp}`;
             const payload = {
               id: newId,
               parentId: node.parentId,      // use parentId from node (initially the sub CSV id)
@@ -518,7 +571,7 @@ async function processParentRecord({
               type: 'page',
               active: true,
               visible: true,
-              description: `Auto-generated child of "${node.parentName}" (level ${lvl+1})`,
+              description: `Auto-generated child of "${node.parentName}" (level ${lvl})`,
               metaTitle: `Meta ${newName}`,
               metaDescription: `Meta desc for ${newName} under ${node.parentName}`,
               // externalLink intentionally omitted or could be added
@@ -538,6 +591,11 @@ async function processParentRecord({
 
             // create via API with retry/backoff - use the simple retry function directly
             const res = await createFnWithRetry({ apiBaseUrl, token, payload, dryRun, logger, getToken });
+
+            // Add delay after API call to reduce server load (skip in dry-run mode)
+            if (!dryRun) {
+              await sleep(DEFAULT_API_DELAY_MS);
+            }
 
             // Shopware response might return the created id in different shapes, but since we
             // provided id, assume the id is the one we sent; otherwise we try to extract it
@@ -879,7 +937,7 @@ async function main() {
           getToken,
           depth,
           branching,
-          concurrency: Math.max(1, Math.floor(concurrency / 2)), // internal concurrency per chain
+          concurrency: Math.max(1, Math.floor(concurrency / 4)), // internal concurrency per chain - very conservative
           outStream,
           delimiter,
           createFnWithRetry: createCategoryApiWithRetry,
