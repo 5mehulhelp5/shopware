@@ -699,7 +699,7 @@
                 "serialization_max_size": {
                     "type": "integer",
                     "default": null,
-                    "description": "Limits the maximum size of the serialized cart. Helps prevent database errors (e.g. max_allowed_packet) by validating the payload size before persistence."
+                    "description": "Limits the maximum size of the serialized cart (in MB). Helps prevent database errors (e.g. max_allowed_packet) by validating the payload size before persistence."
                 },
                 "compression_method": {
                     "type": "string",

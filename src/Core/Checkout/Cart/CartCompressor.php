@@ -19,8 +19,11 @@ class CartCompressor
     /**
      * @internal
      */
-    public function __construct(private readonly bool $compress, string $compressMethod, private readonly ?int $serializationMaxSize = null)
-    {
+    public function __construct(
+        private readonly bool $compress,
+        string $compressMethod,
+        private readonly ?int $serializationMaxSize = null
+    ) {
         $this->compressMethod = match ($compressMethod) {
             'zstd' => self::COMPRESSION_TYPE_ZSTD,
             'gzip' => self::COMPRESSION_TYPE_GZIP,
@@ -80,7 +83,7 @@ class CartCompressor
     private function checkSerializationMaxSize(string $compressed): void
     {
         if ($this->serializationMaxSize && \strlen($compressed) > $this->serializationMaxSize * 1024 * 1024) {
-            throw CartException::serializeCartTooLarge();
+            throw CartException::serializedCartTooLarge();
         }
     }
 }

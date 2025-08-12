@@ -636,7 +636,7 @@ class CartException extends HttpException
         );
     }
 
-    public static function serializeCartTooLarge(): self
+    public static function serializedCartTooLarge(): self
     {
         return new self(
             Response::HTTP_REQUEST_ENTITY_TOO_LARGE,
