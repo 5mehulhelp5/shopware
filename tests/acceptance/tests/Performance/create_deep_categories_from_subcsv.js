@@ -11,6 +11,7 @@
  */
 
 import fs from 'fs';
+import path from 'path';
 import { parse } from 'csv-parse';
 import pLimit from 'p-limit';
 import { setTimeout as wait } from 'timers/promises';
@@ -21,6 +22,173 @@ const DEFAULT_DEPTH = 3;             // how many levels under the first-level (l
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
 const DEFAULT_RETRIES = 4;
 const DEFAULT_BACKOFF_MS = 500;      // initial backoff
+
+// Logging levels
+const LOG_LEVELS = {
+  ERROR: 0,
+  WARN: 1,
+  INFO: 2,
+  DEBUG: 3
+};
+
+// Default retry strategies per endpoint
+const DEFAULT_RETRY_STRATEGIES = {
+  '/api/oauth/token': { retries: 3, backoffMs: 200, maxDelay: 5000 },
+  '/api/category': { retries: 4, backoffMs: 500, maxDelay: 10000 }
+};
+
+// Performance metrics
+class Metrics {
+  constructor() {
+    this.startTime = Date.now();
+    this.apiCalls = { total: 0, successful: 0, failed: 0, retried: 0 };
+    this.categoriesCreated = 0;
+    this.parentRecordsProcessed = 0;
+    this.errors = [];
+    this.retryStats = {};
+  }
+
+  recordApiCall(endpoint, success, retryCount = 0) {
+    this.apiCalls.total++;
+    if (success) {
+      this.apiCalls.successful++;
+      if (endpoint === '/api/category') this.categoriesCreated++;
+    } else {
+      this.apiCalls.failed++;
+    }
+    if (retryCount > 0) {
+      this.apiCalls.retried++;
+      this.retryStats[endpoint] = (this.retryStats[endpoint] || 0) + retryCount;
+    }
+  }
+
+  recordError(error, context) {
+    this.errors.push({ error: error.message, context, timestamp: new Date().toISOString() });
+  }
+
+  recordParentProcessed() {
+    this.parentRecordsProcessed++;
+  }
+
+  getStats() {
+    const duration = Date.now() - this.startTime;
+    return {
+      duration: `${(duration / 1000).toFixed(2)}s`,
+      apiCalls: this.apiCalls,
+      categoriesCreated: this.categoriesCreated,
+      parentRecordsProcessed: this.parentRecordsProcessed,
+      errorCount: this.errors.length,
+      retryStats: this.retryStats,
+      avgApiCallsPerSecond: (this.apiCalls.total / (duration / 1000)).toFixed(2)
+    };
+  }
+}
+
+// Structured logger
+class Logger {
+  constructor(level = LOG_LEVELS.INFO, enableFile = false, logFilePath = null) {
+    this.level = level;
+    this.enableFile = enableFile;
+    this.logFilePath = logFilePath;
+    this.logStream = enableFile && logFilePath ? fs.createWriteStream(logFilePath, { flags: 'a' }) : null;
+  }
+
+  _log(level, message, data = {}) {
+    if (level > this.level) return;
+
+    const timestamp = new Date().toISOString();
+    const levelName = Object.keys(LOG_LEVELS).find(key => LOG_LEVELS[key] === level);
+    const logEntry = {
+      timestamp,
+      level: levelName,
+      message,
+      ...data
+    };
+
+    const logLine = JSON.stringify(logEntry);
+    
+    // Console output with colors
+    const colors = { ERROR: '\x1b[31m', WARN: '\x1b[33m', INFO: '\x1b[32m', DEBUG: '\x1b[36m' };
+    const reset = '\x1b[0m';
+    const dataStr = Object.keys(data).length > 0 ? ` ${JSON.stringify(data)}` : '';
+    console.log(`${colors[levelName] || ''}[${levelName}] ${timestamp} - ${message}${dataStr}${reset}`);
+    
+    // File output
+    if (this.logStream) {
+      this.logStream.write(logLine + '\n');
+    }
+  }
+
+  error(message, data) { this._log(LOG_LEVELS.ERROR, message, data); }
+  warn(message, data) { this._log(LOG_LEVELS.WARN, message, data); }
+  info(message, data) { this._log(LOG_LEVELS.INFO, message, data); }
+  debug(message, data) { this._log(LOG_LEVELS.DEBUG, message, data); }
+
+  close() {
+    if (this.logStream) {
+      this.logStream.end();
+    }
+  }
+}
+
+// Resume state management
+class ResumeState {
+  constructor(stateFilePath) {
+    this.stateFilePath = stateFilePath;
+    this.state = this.loadState();
+  }
+
+  loadState() {
+    try {
+      if (fs.existsSync(this.stateFilePath)) {
+        const data = fs.readFileSync(this.stateFilePath, 'utf-8');
+        const parsed = JSON.parse(data);
+        // Convert array back to Set if it exists
+        if (parsed.processedRecords && Array.isArray(parsed.processedRecords)) {
+          parsed.processedRecords = new Set(parsed.processedRecords);
+        } else {
+          parsed.processedRecords = new Set();
+        }
+        return parsed;
+      }
+    } catch (err) {
+      // Ignore errors, start fresh
+    }
+    return { processedRecords: new Set(), lastProcessedIndex: -1, createdCategories: [] };
+  }
+
+  saveState() {
+    try {
+      const stateToSave = {
+        ...this.state,
+        processedRecords: Array.from(this.state.processedRecords)
+      };
+      fs.writeFileSync(this.stateFilePath, JSON.stringify(stateToSave, null, 2));
+    } catch (err) {
+      console.warn('Failed to save resume state:', err.message);
+    }
+  }
+
+  isProcessed(recordId) {
+    return this.state.processedRecords.has(recordId);
+  }
+
+  markProcessed(recordId, createdCategories = []) {
+    this.state.processedRecords.add(recordId);
+    this.state.createdCategories.push(...createdCategories);
+    this.saveState();
+  }
+
+  cleanup() {
+    try {
+      if (fs.existsSync(this.stateFilePath)) {
+        fs.unlinkSync(this.stateFilePath);
+      }
+    } catch (err) {
+      // Ignore cleanup errors
+    }
+  }
+}
 
 // ------------------------------
 // Helper utilities
@@ -34,20 +202,52 @@ function sleep(ms) {
   return wait(ms);
 }
 
-function retryable(fn, { retries = DEFAULT_RETRIES, backoffMs = DEFAULT_BACKOFF_MS } = {}) {
+function retryable(fn, options = {}) {
+  const { 
+    retries = DEFAULT_RETRIES, 
+    backoffMs = DEFAULT_BACKOFF_MS, 
+    maxDelay = 30000,
+    logger = null,
+    metrics = null,
+    endpoint = 'unknown'
+  } = options;
+
   return async function wrapped(...args) {
     let attempt = 0;
-    while (true) {
+    let lastError;
+    
+    while (attempt <= retries) {
       try {
-        return await fn(...args);
+        const result = await fn(...args);
+        if (metrics) metrics.recordApiCall(endpoint, true, attempt);
+        if (attempt > 0 && logger) {
+          logger.info(`API call succeeded after ${attempt} retries`, { endpoint, attempt });
+        }
+        return result;
       } catch (err) {
+        lastError = err;
         attempt++;
-        if (attempt > retries) throw err;
-        const delay = backoffMs * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100);
-        console.warn(`Attempt ${attempt} failed. Retrying after ${delay}ms — error: ${err.message || err}`);
+        
+        if (attempt > retries) {
+          if (metrics) metrics.recordApiCall(endpoint, false, attempt - 1);
+          if (logger) logger.error(`API call failed after ${retries} retries`, { endpoint, error: err.message });
+          throw err;
+        }
+        
+        const delay = Math.min(maxDelay, backoffMs * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100));
+        if (logger) {
+          logger.warn(`API call failed, retrying in ${delay}ms`, { 
+            endpoint, 
+            attempt, 
+            error: err.message,
+            remainingRetries: retries - attempt + 1
+          });
+        }
         await sleep(delay);
       }
     }
+    
+    throw lastError;
   };
 }
 
@@ -58,7 +258,12 @@ function retryable(fn, { retries = DEFAULT_RETRIES, backoffMs = DEFAULT_BACKOFF_
  * Obtain token via client credentials (optional)
  * Returns access_token string
  */
-async function fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecret }) {
+async function fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecret, dryRun = false, logger = null }) {
+  if (dryRun) {
+    if (logger) logger.info('[DRY RUN] Simulating token fetch', { tokenUrl });
+    return 'dry-run-token-' + Date.now();
+  }
+
   const body = new URLSearchParams({
     grant_type: 'client_credentials',
     client_id: clientId,
@@ -86,7 +291,27 @@ async function fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecre
  * Body properties: id (32-hex), parentId (32-hex), name, description, metaTitle, metaDescription, externalLink, type, active, visible
  * Returns created resource JSON (Shopware returns detail or created entity)
  */
-async function createCategoryApi({ apiBaseUrl, token, payload }) {
+async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, logger = null }) {
+  if (dryRun) {
+    if (logger) {
+      logger.info('[DRY RUN] Simulating category creation', { 
+        categoryId: payload.id, 
+        categoryName: payload.name,
+        parentId: payload.parentId 
+      });
+    }
+    // Simulate API response structure
+    return {
+      data: {
+        id: payload.id,
+        attributes: {
+          name: payload.name,
+          parentId: payload.parentId
+        }
+      }
+    };
+  }
+
   const url = new URL('/api/category', apiBaseUrl).toString();
 
   const res = await fetch(url, {
@@ -110,8 +335,7 @@ async function createCategoryApi({ apiBaseUrl, token, payload }) {
   return json;
 }
 
-// Wrap createCategoryApi with retry/backoff for reuse
-const createCategoryApiWithRetry = retryable(createCategoryApi, { retries: DEFAULT_RETRIES, backoffMs: DEFAULT_BACKOFF_MS });
+// Note: createCategoryApiWithRetry is now created dynamically in main() with custom retry strategies
 
 // ------------------------------
 // CSV helpers
@@ -157,89 +381,161 @@ async function processParentRecord({
   outStream,
   delimiter,
   createFnWithRetry,
+  dryRun = false,
+  logger = null,
+  metrics = null,
+  resumeState = null
 }) {
-  // We'll create progressive levels. We maintain a queue of nodes at current level (start with parentRecord)
-  // But since parentRecord is the existing first-level, we start by creating children of parentRecord.id
-  const timestamp = new Date().toISOString().replace(/[:.]/g,'-');
+  // Check if already processed (resume capability)
+  if (resumeState && resumeState.isProcessed(parentRecord.id)) {
+    if (logger) {
+      logger.info('Skipping already processed parent record', { parentId: parentRecord.id, parentName: parentRecord.name });
+    }
+    return;
+  }
 
-  // queue holds objects: { parentId, parentName, level }
-  let currentLevelNodes = [{ parentId: parentRecord.id, parentName: parentRecord.name, level: 1 }];
+  const createdCategories = [];
+  
+  try {
+    // We'll create progressive levels. We maintain a queue of nodes at current level (start with parentRecord)
+    // But since parentRecord is the existing first-level, we start by creating children of parentRecord.id
+    const timestamp = new Date().toISOString().replace(/[:.]/g,'-');
 
-  for (let lvl = 1; lvl <= depth; lvl++) {
-    // lvl indicates: we will create nodes at level = lvl + 1 relative to original first-level
-    const nextLevelNodes = [];
+    // queue holds objects: { parentId, parentName, level }
+    let currentLevelNodes = [{ parentId: parentRecord.id, parentName: parentRecord.name, level: 1 }];
 
-    // For each node in currentLevelNodes we will create `branching` children
-    // Use concurrency via p-limit
-    const limit = pLimit(concurrency);
+    for (let lvl = 1; lvl <= depth; lvl++) {
+      // lvl indicates: we will create nodes at level = lvl + 1 relative to original first-level
+      const nextLevelNodes = [];
 
-    const tasks = [];
-    for (const node of currentLevelNodes) {
-      for (let b = 0; b < branching; b++) {
-        tasks.push(limit(async () => {
-          const newId = uuidHex();
-          // Build a readable name: "ParentName > L{lvl+1}-{b}-{timestamp}"
-          const newName = `${node.parentName} > L${lvl+1}-${b+1}-${timestamp}`;
-          const payload = {
-            id: newId,
-            parentId: node.parentId,      // use parentId from node (initially the sub CSV id)
-            name: newName,
-            type: 'page',
-            active: true,
-            visible: true,
-            description: `Auto-generated child of ${node.parentName} (level ${lvl+1})`,
-            metaTitle: `Meta ${newName}`,
-            metaDescription: `Meta desc for ${newName}`,
-            // externalLink intentionally omitted or could be added
-          };
+      // For each node in currentLevelNodes we will create `branching` children
+      // Use concurrency via p-limit
+      const limit = pLimit(concurrency);
 
-          // Obtain token (getToken may be async)
-          const token = await getToken();
+      const tasks = [];
+      for (const node of currentLevelNodes) {
+        for (let b = 0; b < branching; b++) {
+          tasks.push(limit(async () => {
+            const newId = uuidHex();
+            // Build a readable name: "ParentName > L{lvl+1}-{b}-{timestamp}"
+            const newName = `${node.parentName} > L${lvl+1}-${b+1}-${timestamp}`;
+            const payload = {
+              id: newId,
+              parentId: node.parentId,      // use parentId from node (initially the sub CSV id)
+              name: newName,
+              type: 'page',
+              active: true,
+              visible: true,
+              description: `Auto-generated child of ${node.parentName} (level ${lvl+1})`,
+              metaTitle: `Meta ${newName}`,
+              metaDescription: `Meta desc for ${newName}`,
+              // externalLink intentionally omitted or could be added
+            };
 
-          // create via API with retry/backoff - use the simple retry function directly
-          const res = await createFnWithRetry({ apiBaseUrl, token, payload });
+            if (logger) {
+              logger.debug('Creating category', { 
+                categoryId: newId, 
+                categoryName: newName, 
+                parentId: node.parentId,
+                level: lvl + 1 
+              });
+            }
 
-          // Shopware response might return the created id in different shapes, but since we
-          // provided id, assume the id is the one we sent; otherwise we try to extract it
-          const createdId = (res && res.data && res.data.id) ? res.data.id : newId;
+            // Obtain token (getToken may be async) - skip in dry-run mode
+            const token = dryRun ? 'dry-run-token' : await getToken();
 
-          // Write to outStream row
-          const outRow = {
-            id: createdId,
-            parent_id: node.parentId,
-            active: payload.active ? 1 : 0,
-            type: payload.type,
-            visible: payload.visible ? 1 : 0,
-            name: newName,
-            external_link: '', // left blank for generated nodes
-            description: payload.description,
-            meta_title: payload.metaTitle,
-            meta_description: payload.metaDescription,
-          };
-          outStream.write(rowToCsvLine(outRow, delimiter));
+            // create via API with retry/backoff - use the simple retry function directly
+            const res = await createFnWithRetry({ apiBaseUrl, token, payload, dryRun, logger });
 
-          // add to nextLevelNodes so we can create children of this node on the next iteration
-          nextLevelNodes.push({ parentId: createdId, parentName: newName, level: lvl + 1 });
-        }));
-      } // end branching
-    } // end currentLevelNodes loop
+            // Shopware response might return the created id in different shapes, but since we
+            // provided id, assume the id is the one we sent; otherwise we try to extract it
+            const createdId = (res && res.data && res.data.id) ? res.data.id : newId;
 
-    // wait for all tasks of this level
-    await Promise.all(tasks);
+            // Track created category for resume state
+            createdCategories.push({ id: createdId, parentId: node.parentId, name: newName, level: lvl + 1 });
 
-    // move to next level
-    currentLevelNodes = nextLevelNodes;
+            // Write to outStream row (skip in dry-run mode for cleaner output)
+            if (!dryRun) {
+              const outRow = {
+                id: createdId,
+                parent_id: node.parentId,
+                active: payload.active ? 1 : 0,
+                type: payload.type,
+                visible: payload.visible ? 1 : 0,
+                name: newName,
+                external_link: '', // left blank for generated nodes
+                description: payload.description,
+                meta_title: payload.metaTitle,
+                meta_description: payload.metaDescription,
+              };
+              outStream.write(rowToCsvLine(outRow, delimiter));
+            }
 
-    // If no nodes were created at this level (branching 0 or other), stop early
-    if (currentLevelNodes.length === 0) break;
-  } // end depth loop
+            // add to nextLevelNodes so we can create children of this node on the next iteration
+            nextLevelNodes.push({ parentId: createdId, parentName: newName, level: lvl + 1 });
+
+            if (logger) {
+              logger.debug('Category created successfully', { 
+                categoryId: createdId, 
+                categoryName: newName,
+                dryRun 
+              });
+            }
+          }));
+        } // end branching
+      } // end currentLevelNodes loop
+
+      // wait for all tasks of this level
+      await Promise.all(tasks);
+
+      // move to next level
+      currentLevelNodes = nextLevelNodes;
+
+      // If no nodes were created at this level (branching 0 or other), stop early
+      if (currentLevelNodes.length === 0) break;
+    } // end depth loop
+
+    // Mark as processed in resume state
+    if (resumeState) {
+      resumeState.markProcessed(parentRecord.id, createdCategories);
+    }
+
+    if (metrics) {
+      metrics.recordParentProcessed();
+    }
+
+    if (logger) {
+      logger.info('Parent record processed successfully', { 
+        parentId: parentRecord.id, 
+        parentName: parentRecord.name,
+        categoriesCreated: createdCategories.length,
+        dryRun 
+      });
+    }
+
+  } catch (error) {
+    if (logger) {
+      logger.error('Failed to process parent record', { 
+        parentId: parentRecord.id, 
+        parentName: parentRecord.name,
+        error: error.message,
+        stack: error.stack
+      });
+    }
+    
+    if (metrics) {
+      metrics.recordError(error, { parentId: parentRecord.id, parentName: parentRecord.name });
+    }
+    
+    throw error; // Re-throw to be handled by caller
+  }
 }
 
 // ------------------------------
 // CLI and execution
 // ------------------------------
 async function main() {
-  // parse args (simple)
+  // parse args (enhanced)
   const argv = process.argv.slice(2);
   const opts = {};
   for (let i = 0; i < argv.length; i++) {
@@ -251,6 +547,11 @@ async function main() {
     }
   }
 
+  // Debug: log parsed arguments
+  console.log('DEBUG: Parsed arguments:', opts);
+  console.log('DEBUG: Raw argv:', argv);
+
+  // Enhanced options
   const subCsvPath = opts['sub-csv'] || 'sub_categories.csv';
   const outCsvPath = opts['out-csv'] || `deeper_created_${Date.now()}.csv`;
   const apiBaseUrl = opts['api-base'] || 'http://localhost:8000';
@@ -265,39 +566,116 @@ async function main() {
   const delimiter = opts['delimiter'] || ',';
   const noHeader = !!opts['no-header'];
 
+  // New enhanced options
+  const dryRun = !!opts['dry-run'];
+  const resume = !!opts['resume'];
+  const logLevel = opts['log-level'] || 'INFO';
+  const enableFileLogging = !!opts['enable-file-logging'];
+  const logFilePath = opts['log-file'] || `category-creation-${Date.now()}.log`;
+  const retryConfigPath = opts['retry-config'] || null;
+  const metricsOutputPath = opts['metrics-output'] || null;
+  const stateFilePath = opts['state-file'] || `category-creation-state-${path.basename(subCsvPath, '.csv')}.json`;
+
+  // Initialize logger
+  const logLevelNum = LOG_LEVELS[logLevel.toUpperCase()] ?? LOG_LEVELS.INFO;
+  const logger = new Logger(logLevelNum, enableFileLogging, logFilePath);
+
+  // Test logger immediately
+  try {
+    logger.info('Logger initialized successfully', { logLevel, enableFileLogging, logFilePath });
+  } catch (err) {
+    console.error('Logger initialization failed:', err);
+    process.exit(1);
+  }
+
+  // Initialize metrics
+  const metrics = new Metrics();
+
+  // Initialize resume state
+  const resumeState = resume ? new ResumeState(stateFilePath) : null;
+
+  logger.info('Starting category creation script', {
+    subCsvPath,
+    outCsvPath,
+    apiBaseUrl,
+    concurrency,
+    depth,
+    branching,
+    dryRun,
+    resume,
+    logLevel,
+    enableFileLogging
+  });
+
   // Input validation
   if (concurrency < 1) {
-    console.error('Concurrency must be at least 1');
+    logger.error('Concurrency must be at least 1');
     process.exit(2);
   }
   if (depth < 1) {
-    console.error('Depth must be at least 1');
+    logger.error('Depth must be at least 1');
     process.exit(2);
   }
   if (branching < 1) {
-    console.error('Branching must be at least 1');
+    logger.error('Branching must be at least 1');
     process.exit(2);
   }
 
   if (!fs.existsSync(subCsvPath)) {
-    console.error(`Input sub CSV not found: ${subCsvPath}`);
+    logger.error(`Input sub CSV not found: ${subCsvPath}`);
     process.exit(2);
   }
+
+  // Load custom retry strategies if provided
+  let retryStrategies = DEFAULT_RETRY_STRATEGIES;
+  if (retryConfigPath && fs.existsSync(retryConfigPath)) {
+    try {
+      const customRetries = JSON.parse(fs.readFileSync(retryConfigPath, 'utf-8'));
+      retryStrategies = { ...DEFAULT_RETRY_STRATEGIES, ...customRetries };
+      logger.info('Loaded custom retry strategies', { retryConfigPath });
+    } catch (err) {
+      logger.warn('Failed to load retry config, using defaults', { error: err.message });
+    }
+  }
+
+  // Create retry wrappers with custom strategies
+  const createCategoryApiWithRetry = retryable(createCategoryApi, {
+    ...retryStrategies['/api/category'],
+    logger,
+    metrics,
+    endpoint: '/api/category'
+  });
+
+  const fetchTokenWithRetry = retryable(fetchTokenWithClientCredentials, {
+    ...retryStrategies['/api/oauth/token'],
+    logger,
+    metrics,
+    endpoint: '/api/oauth/token'
+  });
 
   // Token provider function
   let cachedToken = bearerToken;
   async function getToken() {
     if (cachedToken) return cachedToken;
     if (clientId && clientSecret) {
-      cachedToken = await fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecret });
+      cachedToken = await fetchTokenWithRetry({ 
+        tokenUrl, 
+        clientId, 
+        clientSecret, 
+        dryRun, 
+        logger 
+      });
       return cachedToken;
     }
     throw new Error('No token provided and no client credentials available. Provide --token or --client-id & --client-secret');
   }
 
-  // prepare output CSV stream
-  const outStream = fs.createWriteStream(outCsvPath, { encoding: 'utf-8' });
-  if (!noHeader) outStream.write(csvHeaders().join(delimiter) + '\n');
+  // prepare output CSV stream (skip in dry-run mode)
+  let outStream = null;
+  if (!dryRun) {
+    outStream = fs.createWriteStream(outCsvPath, { encoding: 'utf-8' });
+    if (!noHeader) outStream.write(csvHeaders().join(delimiter) + '\n');
+  }
 
   // streaming CSV parse
   const parser = fs.createReadStream(subCsvPath).pipe(parse({
@@ -306,50 +684,145 @@ async function main() {
     trim: true,
   }));
 
-  // concurrency limit for parents processing (we will process each first-level row in parallel up to concurrency)
+  // concurrency limit for parents processing
   const limitParents = pLimit(concurrency);
 
   // For streaming processing with progress tracking
   let processedCount = 0;
-  console.log(`Starting to process categories from ${subCsvPath}...`);
+  let errorCount = 0;
+  
+  if (dryRun) {
+    logger.info('🧪 DRY RUN MODE - No actual API calls will be made');
+  }
+  
+  if (resume && resumeState) {
+    logger.info('📂 RESUME MODE - Skipping already processed records', {
+      alreadyProcessed: resumeState.state.processedRecords.size
+    });
+  }
+
+  logger.info(`Starting to process categories from ${subCsvPath}...`);
 
   // Process records as they come from the stream
+  let recordCount = 0;
   for await (const record of parser) {
+    recordCount++;
+    
+    // Log first record for debugging
+    if (recordCount === 1) {
+      logger.debug('First CSV record structure', { record, availableColumns: Object.keys(record) });
+    }
+    
     // Validate required fields: id, name
     const parentId = (record.id || '').trim();
     const parentName = (record.name || '').trim();
     if (!parentId) {
-      console.warn('Skipping record with no id:', record);
+      logger.warn('Skipping record with no id', { recordNumber: recordCount, record });
       continue;
     }
     if (!parentName) {
-      console.warn('Skipping record with no name:', record);
+      logger.warn('Skipping record with no name', { recordNumber: recordCount, record });
       continue;
     }
 
     // Process each parent record with concurrency control
     await limitParents(async () => {
-      await processParentRecord({
-        parentRecord: { id: parentId, name: parentName },
-        apiBaseUrl,
-        getToken,
-        depth,
-        branching,
-        concurrency: Math.max(1, Math.floor(concurrency / 2)), // internal concurrency per chain
-        outStream,
-        delimiter,
-        createFnWithRetry: createCategoryApiWithRetry, // Use the simple retry function directly
-      });
-      
-      processedCount++;
-      if (processedCount % 10 === 0) {
-        console.log(`Progress: ${processedCount} parent categories processed`);
+      try {
+        await processParentRecord({
+          parentRecord: { id: parentId, name: parentName },
+          apiBaseUrl,
+          getToken,
+          depth,
+          branching,
+          concurrency: Math.max(1, Math.floor(concurrency / 2)), // internal concurrency per chain
+          outStream,
+          delimiter,
+          createFnWithRetry: createCategoryApiWithRetry,
+          dryRun,
+          logger,
+          metrics,
+          resumeState
+        });
+        
+        processedCount++;
+        if (processedCount % 10 === 0) {
+          const stats = metrics.getStats();
+          logger.info(`Progress update`, { 
+            processedCount, 
+            categoriesCreated: stats.categoriesCreated,
+            apiCalls: stats.apiCalls.total,
+            errorCount: stats.errorCount,
+            avgApiCallsPerSecond: stats.avgApiCallsPerSecond
+          });
+        }
+      } catch (error) {
+        errorCount++;
+        logger.error('Failed to process parent record', {
+          parentId,
+          parentName,
+          error: error.message,
+          stack: error.stack
+        });
+        // Don't re-throw in dry-run mode to continue processing other records
+        if (!dryRun) {
+          throw error;
+        }
       }
     });
   } // end streaming loop
 
-  outStream.end();
-  console.log(`\nCompleted! Processed ${processedCount} parent categories. Output CSV: ${outCsvPath}`);
+  if (outStream) {
+    outStream.end();
+  }
+
+  // Final metrics and summary
+  const finalStats = metrics.getStats();
+  
+  logger.info('🎉 Processing completed!', {
+    ...finalStats,
+    processedParents: processedCount,
+    errorCount,
+    outputFile: dryRun ? 'N/A (dry-run)' : outCsvPath,
+    dryRun
+  });
+
+  // Save metrics to file if requested
+  if (metricsOutputPath) {
+    try {
+      const metricsReport = {
+        summary: finalStats,
+        processedParents: processedCount,
+        errorCount,
+        errors: metrics.errors,
+        configuration: {
+          subCsvPath,
+          outCsvPath,
+          concurrency,
+          depth,
+          branching,
+          dryRun,
+          resume
+        },
+        timestamp: new Date().toISOString()
+      };
+      fs.writeFileSync(metricsOutputPath, JSON.stringify(metricsReport, null, 2));
+      logger.info('Metrics saved', { metricsOutputPath });
+    } catch (err) {
+      logger.warn('Failed to save metrics', { error: err.message });
+    }
+  }
+
+  // Cleanup resume state on successful completion (unless errors occurred)
+  if (resumeState && errorCount === 0) {
+    resumeState.cleanup();
+    logger.info('Resume state cleaned up (successful completion)');
+  }
+
+  // Close logger
+  logger.close();
+
+  // Exit with appropriate code
+  process.exit(errorCount > 0 ? 1 : 0);
 }
 
 // If running directly
@@ -369,7 +842,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 /*
 USAGE EXAMPLES:
 
-1. Basic usage with existing CSV:
+Basic Usage:
+1. Simple run with existing CSV:
    node create_deep_categories_from_subcsv.js --sub-csv=my_categories.csv --token=your_token
 
 2. Create 4 levels deep with 2 children per node:
@@ -378,15 +852,52 @@ USAGE EXAMPLES:
 3. Use OAuth client credentials:
    node create_deep_categories_from_subcsv.js --client-id=your_id --client-secret=your_secret
 
-4. Custom API endpoint and output file:
-   node create_deep_categories_from_subcsv.js --api-base=https://myshop.com --out-csv=my_output.csv
+Advanced Features:
+4. Dry-run mode (test without making API calls):
+   node create_deep_categories_from_subcsv.js --dry-run --token=your_token
 
-5. Lower concurrency for rate-limited APIs:
-   node create_deep_categories_from_subcsv.js --concurrency=2 --token=your_token
+5. Resume interrupted runs:
+   node create_deep_categories_from_subcsv.js --resume --token=your_token
 
-Environment variables can also be used:
+6. Enhanced logging with file output:
+   node create_deep_categories_from_subcsv.js --log-level=DEBUG --enable-file-logging --log-file=my_run.log
+
+7. Custom retry strategies:
+   node create_deep_categories_from_subcsv.js --retry-config=retry_config.json --token=your_token
+
+8. Metrics collection:
+   node create_deep_categories_from_subcsv.js --metrics-output=run_metrics.json --token=your_token
+
+9. Full production run with all features:
+   node create_deep_categories_from_subcsv.js \
+     --sub-csv=categories.csv \
+     --depth=3 \
+     --branching=2 \
+     --concurrency=4 \
+     --log-level=INFO \
+     --enable-file-logging \
+     --resume \
+     --metrics-output=metrics.json \
+     --token=your_token
+
+Environment variables:
    export SHOPWARE_TOKEN=your_token
    export SHOPWARE_CLIENT_ID=your_id
    export SHOPWARE_CLIENT_SECRET=your_secret
-   node create_deep_categories_from_subcsv.js
+
+Retry Configuration File (retry_config.json):
+{
+  "/api/oauth/token": {
+    "retries": 3,
+    "backoffMs": 200,
+    "maxDelay": 5000
+  },
+  "/api/category": {
+    "retries": 5,
+    "backoffMs": 1000,
+    "maxDelay": 30000
+  }
+}
+
+Log Levels: ERROR, WARN, INFO, DEBUG
 */
