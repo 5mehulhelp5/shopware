@@ -16,9 +16,13 @@ import { parse } from 'csv-parse';
 import pLimit from 'p-limit';
 import { setTimeout as wait } from 'timers/promises';
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Load environment variables from the .env file
+dotenv.config({ path: '/Users/vndanlap-0154/sw67_dev/tests/acceptance/.env' });
 
 const DEFAULT_CONCURRENCY = 8;
-const DEFAULT_DEPTH = 3;             // how many levels under the first-level (level 2..depth)
+const DEFAULT_DEPTH = 1;             // how many levels under the first-level (level 2..depth)
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
 const DEFAULT_RETRIES = 4;
 const DEFAULT_BACKOFF_MS = 500;      // initial backoff
@@ -554,10 +558,10 @@ async function main() {
   // Enhanced options
   const subCsvPath = opts['sub-csv'] || 'sub_categories.csv';
   const outCsvPath = opts['out-csv'] || `deeper_created_${Date.now()}.csv`;
-  const apiBaseUrl = opts['api-base'] || 'http://localhost:8000';
-  const bearerToken = opts['token'] || process.env.SHOPWARE_TOKEN || null;
-  const clientId = opts['client-id'] || process.env.SHOPWARE_CLIENT_ID || null;
-  const clientSecret = opts['client-secret'] || process.env.SHOPWARE_CLIENT_SECRET || null;
+  const apiBaseUrl = opts['api-base'] || process.env.APP_URL || 'https://van-snapshot-test-1.swstage.store';
+  const bearerToken = opts['token'] || process.env.TOKEN || process.env.SHOPWARE_TOKEN || null;
+  const clientId = opts['client-id'] || process.env.SHOPWARE_ACCESS_KEY_ID || process.env.SHOPWARE_CLIENT_ID || null;
+  const clientSecret = opts['client-secret'] || process.env.SHOPWARE_SECRET_ACCESS_KEY || process.env.SHOPWARE_CLIENT_SECRET || null;
   const tokenUrl = opts['token-url'] || (apiBaseUrl.replace(/\/$/, '') + '/api/oauth/token');
 
   const concurrency = parseInt(opts['concurrency'] || DEFAULT_CONCURRENCY, 10);
