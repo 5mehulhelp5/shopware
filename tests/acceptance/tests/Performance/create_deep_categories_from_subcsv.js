@@ -27,10 +27,10 @@ function cleanEnvVar(value) {
   return value.toString().replace(/^['"]|['"];?$/g, '').trim();
 }
 
-const DEFAULT_CONCURRENCY = 8;
+const DEFAULT_CONCURRENCY = 4;          // how many concurrent API calls to make
 const DEFAULT_DEPTH = 3;             // how many levels under the first-level (level 2..depth)
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
-const DEFAULT_RETRIES = 4;
+const DEFAULT_RETRIES = 5;             // how many retries for API calls
 const DEFAULT_BACKOFF_MS = 500;      // initial backoff
 
 // Logging levels
@@ -301,7 +301,7 @@ async function fetchTokenWithClientCredentials({ tokenUrl, clientId, clientSecre
  * Body properties: id (32-hex), parentId (32-hex), name, description, metaTitle, metaDescription, externalLink, type, active, visible
  * Returns created resource JSON (Shopware returns detail or created entity)
  */
-async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, logger = null }) {
+async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, logger = null, getToken = null }) {
   if (dryRun) {
     if (logger) {
       logger.info('[DRY RUN] Simulating category creation', { 
@@ -324,15 +324,54 @@ async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, l
 
   const url = new URL('/api/category', apiBaseUrl).toString();
 
-  const res = await fetch(url, {
+  // First attempt with current token
+  let currentToken = token;
+  let res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${currentToken}`,
       Accept: 'application/json',
     },
     body: JSON.stringify(payload),
   });
+
+  // If 401 error and we have a getToken function, refresh token and retry
+  if (res.status === 401 && getToken) {
+    if (logger) {
+      logger.warn('Got 401 error, refreshing token and retrying', { 
+        categoryId: payload.id,
+        categoryName: payload.name 
+      });
+    }
+    
+    try {
+      currentToken = await getToken(true); // Pass true to force refresh
+      
+      // Retry with new token
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentToken}`,
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (logger) {
+        logger.info('Token refreshed and request retried', { 
+          categoryId: payload.id,
+          success: res.ok 
+        });
+      }
+    } catch (tokenError) {
+      if (logger) {
+        logger.error('Failed to refresh token', { error: tokenError.message });
+      }
+      // Continue with original error handling below
+    }
+  }
 
   const text = await res.text();
   let json;
@@ -456,7 +495,7 @@ async function processParentRecord({
     // queue holds objects: { parentId, parentName, level }
     let currentLevelNodes = [{ parentId: parentRecord.id, parentName: parentRecord.name, level: 1 }];
 
-    for (let lvl = 0; lvl <= depth; lvl++) {
+    for (let lvl = 1; lvl <= depth; lvl++) {
       // lvl indicates: we will create nodes at level = lvl + 1 relative to original first-level
       const nextLevelNodes = [];
 
@@ -498,7 +537,7 @@ async function processParentRecord({
             const token = dryRun ? 'dry-run-token' : await getToken();
 
             // create via API with retry/backoff - use the simple retry function directly
-            const res = await createFnWithRetry({ apiBaseUrl, token, payload, dryRun, logger });
+            const res = await createFnWithRetry({ apiBaseUrl, token, payload, dryRun, logger, getToken });
 
             // Shopware response might return the created id in different shapes, but since we
             // provided id, assume the id is the one we sent; otherwise we try to extract it
@@ -741,9 +780,12 @@ async function main() {
 
   // Token provider function
   let cachedToken = bearerToken;
-  async function getToken() {
-    if (cachedToken) return cachedToken;
+  async function getToken(forceRefresh = false) {
+    if (cachedToken && !forceRefresh) return cachedToken;
     if (clientId && clientSecret) {
+      if (forceRefresh && logger) {
+        logger.info('Forcing token refresh', { reason: 'received 401 error' });
+      }
       cachedToken = await fetchTokenWithRetry({ 
         tokenUrl, 
         clientId, 
@@ -752,6 +794,9 @@ async function main() {
         logger 
       });
       return cachedToken;
+    }
+    if (forceRefresh && !clientId) {
+      throw new Error('Cannot refresh token: no client credentials available. Provide --client-id & --client-secret for automatic token refresh');
     }
     throw new Error('No token provided and no client credentials available. Provide --token or --client-id & --client-secret');
   }
