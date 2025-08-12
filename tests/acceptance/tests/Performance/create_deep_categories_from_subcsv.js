@@ -196,9 +196,8 @@ async function processParentRecord({
           // Obtain token (getToken may be async)
           const token = await getToken();
 
-          // create via API with retry/backoff
-          const createWithRetry = createFnWithRetry({ apiBaseUrl, token });
-          const res = await createWithRetry({ payload });
+          // create via API with retry/backoff - use the simple retry function directly
+          const res = await createFnWithRetry({ apiBaseUrl, token, payload });
 
           // Shopware response might return the created id in different shapes, but since we
           // provided id, assume the id is the one we sent; otherwise we try to extract it
@@ -310,14 +309,13 @@ async function main() {
   // concurrency limit for parents processing (we will process each first-level row in parallel up to concurrency)
   const limitParents = pLimit(concurrency);
 
-  // For each parsed row
-  const tasks = [];
+  // For streaming processing with progress tracking
   let processedCount = 0;
-  let totalRecords = 0;
-  
-  // First pass: count total records for progress reporting
-  const records = [];
+  console.log(`Starting to process categories from ${subCsvPath}...`);
+
+  // Process records as they come from the stream
   for await (const record of parser) {
+    // Validate required fields: id, name
     const parentId = (record.id || '').trim();
     const parentName = (record.name || '').trim();
     if (!parentId) {
@@ -328,20 +326,11 @@ async function main() {
       console.warn('Skipping record with no name:', record);
       continue;
     }
-    records.push({ id: parentId, name: parentName });
-  }
-  
-  totalRecords = records.length;
-  console.log(`Processing ${totalRecords} parent categories...`);
-  
-  // Process records
-  for (const parentRecord of records) {
 
-    // queue processing with concurrency
-    tasks.push(limitParents(async () => {
-      // Create the node(s)
+    // Process each parent record with concurrency control
+    await limitParents(async () => {
       await processParentRecord({
-        parentRecord,
+        parentRecord: { id: parentId, name: parentName },
         apiBaseUrl,
         getToken,
         depth,
@@ -349,32 +338,18 @@ async function main() {
         concurrency: Math.max(1, Math.floor(concurrency / 2)), // internal concurrency per chain
         outStream,
         delimiter,
-        createFnWithRetry: async ({ apiBaseUrl: optApiBaseUrl, token }) => {
-          const effectiveToken = token || await getToken();
-          const effectiveApiBaseUrl = optApiBaseUrl || apiBaseUrl;
-          // Use the pre-built retry wrapper
-          return async function createWithPayload({ payload }) {
-            return createCategoryApiWithRetry({ 
-              apiBaseUrl: effectiveApiBaseUrl, 
-              token: effectiveToken, 
-              payload 
-            });
-          };
-        },
+        createFnWithRetry: createCategoryApiWithRetry, // Use the simple retry function directly
       });
       
       processedCount++;
-      if (processedCount % 10 === 0 || processedCount === totalRecords) {
-        console.log(`Progress: ${processedCount}/${totalRecords} parent categories processed`);
+      if (processedCount % 10 === 0) {
+        console.log(`Progress: ${processedCount} parent categories processed`);
       }
-    }));
-  } // end records loop
-
-  // wait for all parent tasks
-  await Promise.all(tasks);
+    });
+  } // end streaming loop
 
   outStream.end();
-  console.log(`\nCompleted. Output CSV: ${outCsvPath}`);
+  console.log(`\nCompleted! Processed ${processedCount} parent categories. Output CSV: ${outCsvPath}`);
 }
 
 // If running directly
