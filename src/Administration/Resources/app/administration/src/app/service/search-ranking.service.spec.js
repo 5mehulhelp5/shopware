@@ -643,7 +643,7 @@ describe('app/service/search-ranking.service.js', () => {
 
     it('should validate search terms correctly', async () => {
         const service = new SearchRankingService();
-        await service.updateMinSearchTermLength();
+        await service.getMinSearchTermLength();
 
         expect(service.isValidTerm('ab')).toBe(true);
         expect(service.isValidTerm('a')).toBe(false);
@@ -655,7 +655,7 @@ describe('app/service/search-ranking.service.js', () => {
         originalService.getValues = jest.fn().mockResolvedValue({ 'core.search.minSearchTermLength': 1 });
 
         const service = new SearchRankingService();
-        await service.updateMinSearchTermLength();
+        await service.getMinSearchTermLength();
 
         expect(service.isValidTerm('a')).toBe(true);
     });

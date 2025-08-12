@@ -41,9 +41,14 @@
         "title": "Elasticsearch ist nun aktiviert",
         "text": "Sie haben die elasticsearch für den Admin-Bereich aktiviert, diese Felder sind durchsuchbar und können nicht deaktiviert werden. Sie können aber die Entitäten, die durchsuchbar sind, deaktivieren"
       },
-      "cardSearchableElements": {
-        "title": "Durchsuchbare Elemente",
-        "description": "Lege die durchsuchbaren Inhalte für Module und Einträge fest.",
+      "cardSearchBehavior": {
+        "title": "Search behavior",
+        "subtitle": "Predefine your Administration's search behaviour",
+        "labelMinSearchTermLength": "Minimal search term length"
+      },
+      "cardSearchContent": {
+        "title": "Searchable content",
+        "subtitle": "Lege die durchsuchbaren Inhalte für Module und Einträge fest",
         "buttonSelect": "Alle auswählen",
         "buttonDeselect": "Alle abwählen",
         "buttonReset": "Standard wiederherstellen"

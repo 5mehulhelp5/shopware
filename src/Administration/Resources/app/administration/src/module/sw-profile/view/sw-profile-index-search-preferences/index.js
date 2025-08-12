@@ -10,7 +10,7 @@ const { Module, Store, Mixin } = Shopware;
 export default {
     template,
 
-    inject: ['searchPreferencesService'],
+    inject: ['searchPreferencesService', 'searchRankingService'],
 
     mixins: [
         Mixin.getByName('notification'),
@@ -23,6 +23,15 @@ export default {
     },
 
     computed: {
+        minSearchTermLength: {
+            get() {
+                return Store.get('swProfile').minSearchTermLength;
+            },
+            set(minSearchTermLength) {
+                Store.get('swProfile').setMinSearchTermLength(minSearchTermLength);
+            },
+        },
+
         searchPreferences: {
             get() {
                 return Store.get('swProfile').searchPreferences;
@@ -97,6 +106,7 @@ export default {
 
     methods: {
         async createdComponent() {
+            await this.getMinSearchTermLength();
             await this.getDataSource();
             this.updateDataSource();
             this.addEventListeners();
@@ -104,6 +114,19 @@ export default {
 
         beforeDestroyComponent() {
             this.removeEventListeners();
+        },
+
+        async getMinSearchTermLength() {
+            this.isLoading = true;
+
+            try {
+                const minSearchTermLength = await this.searchRankingService.getMinSearchTermLength();
+                Shopware.Store.get('swProfile').setMinSearchTermLength(minSearchTermLength);
+            } catch (error) {
+                this.createNotificationError({ message: error.message });
+            } finally {
+                this.isLoading = false;
+            }
         },
 
         async getDataSource() {

@@ -24,12 +24,10 @@ async function createWrapper() {
                     'sw-checkbox-field': true,
                     'sw-loader': true,
                     'sw-extension-component-section': true,
-
                     'sw-ai-copilot-badge': true,
                     'sw-context-button': true,
                     'router-link': true,
                 },
-
                 provide: {
                     repositoryFactory: {
                         create: () => ({
