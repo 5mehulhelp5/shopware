@@ -21,8 +21,14 @@ import dotenv from 'dotenv';
 // Load environment variables from the .env file
 dotenv.config({ path: '/Users/vndanlap-0154/sw67_dev/tests/acceptance/.env' });
 
+// Helper function to clean up environment variables (remove quotes and semicolons)
+function cleanEnvVar(value) {
+  if (!value) return value;
+  return value.toString().replace(/^['"]|['"];?$/g, '').trim();
+}
+
 const DEFAULT_CONCURRENCY = 8;
-const DEFAULT_DEPTH = 1;             // how many levels under the first-level (level 2..depth)
+const DEFAULT_DEPTH = 3;             // how many levels under the first-level (level 2..depth)
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
 const DEFAULT_RETRIES = 4;
 const DEFAULT_BACKOFF_MS = 500;      // initial backoff
@@ -545,9 +551,16 @@ async function main() {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a.startsWith('--')) {
-      const key = a.slice(2);
-      const next = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
-      opts[key] = next;
+      if (a.includes('=')) {
+        // Handle --key=value format
+        const [key, value] = a.slice(2).split('=', 2);
+        opts[key] = value;
+      } else {
+        // Handle --key value or --flag format
+        const key = a.slice(2);
+        const next = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
+        opts[key] = next;
+      }
     }
   }
 
@@ -558,10 +571,10 @@ async function main() {
   // Enhanced options
   const subCsvPath = opts['sub-csv'] || 'sub_categories.csv';
   const outCsvPath = opts['out-csv'] || `deeper_created_${Date.now()}.csv`;
-  const apiBaseUrl = opts['api-base'] || process.env.APP_URL || 'https://van-snapshot-test-1.swstage.store';
-  const bearerToken = opts['token'] || process.env.TOKEN || process.env.SHOPWARE_TOKEN || null;
-  const clientId = opts['client-id'] || process.env.SHOPWARE_ACCESS_KEY_ID || process.env.SHOPWARE_CLIENT_ID || null;
-  const clientSecret = opts['client-secret'] || process.env.SHOPWARE_SECRET_ACCESS_KEY || process.env.SHOPWARE_CLIENT_SECRET || null;
+  const apiBaseUrl = opts['api-base'] || cleanEnvVar(process.env.APP_URL) || 'https://van-snapshot-test-1.swstage.store';
+  const bearerToken = opts['token'] || cleanEnvVar(process.env.TOKEN) || process.env.SHOPWARE_TOKEN || null;
+  const clientId = opts['client-id'] || cleanEnvVar(process.env.SHOPWARE_ACCESS_KEY_ID) || process.env.SHOPWARE_CLIENT_ID || null;
+  const clientSecret = opts['client-secret'] || cleanEnvVar(process.env.SHOPWARE_SECRET_ACCESS_KEY) || process.env.SHOPWARE_CLIENT_SECRET || null;
   const tokenUrl = opts['token-url'] || (apiBaseUrl.replace(/\/$/, '') + '/api/oauth/token');
 
   const concurrency = parseInt(opts['concurrency'] || DEFAULT_CONCURRENCY, 10);
@@ -579,6 +592,19 @@ async function main() {
   const retryConfigPath = opts['retry-config'] || null;
   const metricsOutputPath = opts['metrics-output'] || null;
   const stateFilePath = opts['state-file'] || `category-creation-state-${path.basename(subCsvPath, '.csv')}.json`;
+
+  // Debug: log environment variables and argument parsing
+  console.log('DEBUG: Environment variables loaded:', {
+    apiBaseUrl,
+    hasToken: !!bearerToken,
+    hasClientId: !!clientId,
+    hasClientSecret: !!clientSecret,
+    rawAppUrl: process.env.APP_URL,
+    cleanedAppUrl: cleanEnvVar(process.env.APP_URL),
+    depth,
+    branching,
+    concurrency
+  });
 
   // Initialize logger
   const logLevelNum = LOG_LEVELS[logLevel.toUpperCase()] ?? LOG_LEVELS.INFO;
