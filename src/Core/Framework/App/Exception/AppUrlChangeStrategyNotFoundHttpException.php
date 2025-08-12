@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 #[Package('framework')]
 class AppUrlChangeStrategyNotFoundHttpException extends ShopwareHttpException
 {
-    public function __construct(AppUrlChangeStrategyNotFoundException $previous)
+    public function __construct(ShopIdChangeStrategyNotFoundException $previous)
     {
         parent::__construct($previous->getMessage(), [], $previous);
     }

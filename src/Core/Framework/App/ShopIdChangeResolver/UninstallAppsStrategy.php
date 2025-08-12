@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace Shopware\Core\Framework\App\AppUrlChangeResolver;
+namespace Shopware\Core\Framework\App\ShopIdChangeResolver;
 
 use Shopware\Core\Framework\App\AppCollection;
 use Shopware\Core\Framework\App\Event\AppDeactivatedEvent;
@@ -13,14 +13,14 @@ use Shopware\Core\Framework\Plugin\Exception\DecorationPatternException;
 use Shopware\Storefront\Theme\ThemeAppLifecycleHandler;
 
 /**
- * @internal only for use by the app-system
+ * @internal
  *
  * Resolver used when apps should be uninstalled
  * and the shopId should be regenerated, meaning the old shops and old apps work like before
  * apps in the current installation will be uninstalled without informing them about that (as they still run on the old installation)
  */
 #[Package('framework')]
-class UninstallAppsStrategy extends AbstractAppUrlChangeStrategy
+class UninstallAppsStrategy extends AbstractShopIdChangeStrategy
 {
     final public const STRATEGY_NAME = 'uninstall-apps';
 
@@ -34,7 +34,7 @@ class UninstallAppsStrategy extends AbstractAppUrlChangeStrategy
     ) {
     }
 
-    public function getDecorated(): AbstractAppUrlChangeStrategy
+    public function getDecorated(): AbstractShopIdChangeStrategy
     {
         throw new DecorationPatternException(self::class);
     }

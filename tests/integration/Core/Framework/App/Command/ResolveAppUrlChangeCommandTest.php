@@ -3,8 +3,8 @@
 namespace Shopware\Tests\Integration\Core\Framework\App\Command;
 
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\App\AppUrlChangeResolver\Resolver;
-use Shopware\Core\Framework\App\Command\ResolveAppUrlChangeCommand;
+use Shopware\Core\Framework\App\Command\ChangeShopIdCommand;
+use Shopware\Core\Framework\App\ShopIdChangeResolver\Resolver;
 use Shopware\Core\Framework\Context;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -31,7 +31,7 @@ class ResolveAppUrlChangeCommandTest extends TestCase
             );
 
         $commandTester = new CommandTester(
-            new ResolveAppUrlChangeCommand($urlChangeStrategy)
+            new ChangeShopIdCommand($urlChangeStrategy)
         );
 
         $commandTester->setInputs(['testStrategy']);
@@ -63,7 +63,7 @@ class ResolveAppUrlChangeCommandTest extends TestCase
             );
 
         $commandTester = new CommandTester(
-            new ResolveAppUrlChangeCommand($urlChangeStrategy)
+            new ChangeShopIdCommand($urlChangeStrategy)
         );
 
         $commandTester->execute(['strategy' => 'testStrategy']);
@@ -92,7 +92,7 @@ class ResolveAppUrlChangeCommandTest extends TestCase
             );
 
         $commandTester = new CommandTester(
-            new ResolveAppUrlChangeCommand($urlChangeStrategy)
+            new ChangeShopIdCommand($urlChangeStrategy)
         );
 
         $commandTester->setInputs(['testStrategy']);

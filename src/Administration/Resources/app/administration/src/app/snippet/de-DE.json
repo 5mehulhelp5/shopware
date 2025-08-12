@@ -1502,7 +1502,7 @@
         "iframeModalConfirmMessageDescription": "Bitte stellen Sie sicher, dass alle Prozesse abgeschlossen sind.",
         "dontAskMeAgain": "Mich nicht erneut fragen"
       },
-      "sw-app-app-url-changed-modal": {
+      "sw-app-shop-id-change-modal": {
         "move-shop-permanently": {
           "name": "Migriere Deine Apps zur neuen Domain",
           "description": "Dies ist in der Regel die richtige Option, wenn du deinen Shop dauerhaft von einer alten zu einer neuen Domain umgezogen hast. Shopware benachrichtigt die App-Server über die neue Domain (d.h. sie registrieren sich neu bei den App-Servern) und die Apps bleiben installiert. Die Shop-ID bleibt unverändert."

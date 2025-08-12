@@ -1,0 +1,121 @@
+{% block sw_app_app_url_changed_modal %}
+    <sw-modal
+        class="sw-app-shop-id-change-modal"
+        variant="large"
+        :title="$tc('sw-app.component.sw-app-shop-id-change-modal.title')"
+        :is-loading="isLoading"
+        @modal-close="closeModal"
+    >
+        <template #default>
+            {% block sw_app_app_url_changed_modal_content %}
+                {% block sw_app_app_url_changed_modal_content_description %}
+                    <div class="sw-app-shop-id-change-modal__content-description">
+                        <p>Changes in your system and environment were detected that suggest a change of your shop's identifier.</p>
+
+
+                        <mt-banner
+                            variant="neutral"
+                            icon="regular-info-circle"
+                            title="What is the shop identifier?"
+                        >
+                            The shop identifier is a feature of Shopware's app system. App servers your shop is registered at use it to uniquely identify your shop. Because of this, it is important that shop identifiers remain unique and are not shared across different shops, not even in different environments of the same shop.
+                        </mt-banner>
+
+                        <p>1. Check the following changes and choose how you want to resolve this.</p>
+                    </div>
+
+                    <div class="sw-app-shop-id-change-modal__fingerprint-comparison-result">
+                        <table class="sw-app-shop-id-change-modal__fingerprint-comparison-result-table">
+                            <thead>
+                            <tr>
+                                <th>Fingerprint</th>
+                                <th>Stored Stamp</th>
+                                <th>Expected Stamp</th>
+                                <th>State</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr v-for="fingerprint in comparisonResult.mismatchingFingerprints">
+                                <td><code>{{ fingerprint.identifier }}</code></td>
+                                <td>{{ fingerprint.storedStamp }}</td>
+                                <td>{{ fingerprint.expectedStamp }}</td>
+                                <td><mt-icon name="regular-times-circle" color="var(--color-icon-critical-default)" size="16px"/> Mismatch</td>
+                            </tr>
+
+                            <tr v-for="fingerprint in comparisonResult.matchingFingerprints">
+                                <td><code>{{ fingerprint.identifier }}</code></td>
+                                <td>{{ fingerprint.storedStamp }}</td>
+                                <td>{{ fingerprint.storedStamp }}</td>
+                                <td><mt-icon name="regular-check-circle" color="var(--color-icon-positive-default)" size="16px"/> Match</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% endblock %}
+
+                {% block sw_app_app_url_changed_modal_content_strategies %}
+                    <div class="sw-app-shop-id-change-modal__content-choices">
+                        <p>2. Read the available options carefully and select the one that best suits your scenario.</p>
+
+                        <template
+                            v-for="(strategy, index) in strategies"
+                            :key="`content-strategies-${index}`"
+                        >
+                            <mt-button
+                                class="sw-app-shop-id-change-modal__button-strategy"
+                                :class="getActiveStyle(strategy)"
+                                variant="secondary"
+                                @click="setSelectedStrategy(strategy)"
+                            >
+                                <div class="sw-app-shop-id-change-modal__content-migration-strategy">
+                                    <template v-if="isSelected(strategy)">
+                                        <mt-icon
+                                            size="1rem"
+                                            color="var(--color-icon-brand-default)"
+                                            name="regular-circle-xxs"
+                                        />
+                                        <mt-icon
+                                            size="1rem"
+                                            color="var(--color-elevation-surface-raised)"
+                                            name="regular-circle"
+                                        />
+                                    </template>
+                                    <mt-icon
+                                        v-else
+                                        size="1rem"
+                                        name="regular-circle"
+                                    />
+
+                                    <span class="sw-app-shop-id-change-modal__content-choices-label">
+                            {{ getStrategyLabel(strategy) }}
+                        </span>
+
+                                    <span class="sw-app-shop-id-change-modal__content-choices-description">
+                            {{ getStrategyDescription(strategy) }}
+                        </span>
+                                </div>
+                            </mt-button>
+                        </template>
+                    </div>
+                {% endblock %}
+            {% endblock %}
+        </template>
+
+        <template #modal-footer>
+            <mt-button
+                variant="secondary"
+                @click="closeModal"
+            >
+                {{ $tc('global.default.cancel') }}
+            </mt-button>
+
+            <mt-button
+                variant="primary"
+                @click="confirm"
+            >
+                {{ $tc('sw-app.component.sw-app-shop-id-change-modal.confirmation') }}
+            </mt-button>
+        </template>
+    </sw-modal>
+{% endblock %}

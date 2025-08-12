@@ -310,7 +310,7 @@ class ExecutorTest extends TestCase
         $this->executor->execute($action, Context::createDefaultContext());
     }
 
-    public function testThrowsExceptionIfAppUrlChangeIsDetected(): void
+    public function testThrowsExceptionIfShopIdFingerprintsHaveChanged(): void
     {
         $this->loadAppsFromDir(__DIR__ . '/../Manifest/_fixtures/test');
         $systemConfigService = static::getContainer()->get(SystemConfigService::class);

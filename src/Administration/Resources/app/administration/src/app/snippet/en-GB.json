@@ -1502,23 +1502,23 @@
         "iframeModalConfirmMessageDescription": "Please make sure that all processes are completed.",
         "dontAskMeAgain": "Don't ask me again"
       },
-      "sw-app-app-url-changed-modal": {
+      "sw-app-shop-id-change-modal": {
         "move-shop-permanently": {
-          "name": "Migrate apps to new domain",
-          "description": "This is typically the right option if you have permanently moved your shop from an old to a new domain. Shopware will notify app servers about the new domain (i.e. re-register at the app servers) and apps remain installed. The shop identifier remains unchanged."
+          "description": "This is typically the right option if you have permanently moved your shop from an old to a new domain. Shopware will notify app servers (i.e. re-register at the app servers) using the same shop identifier and apps remain installed.",
+          "name": "Keep the shop identifier"
         },
         "reinstall-apps": {
-          "name": "Copy apps to current domain",
-          "description": "This is typically the right option if you have made a copy of your shop (e.g. a staging or testing environment of a production shop) and you do want to use the apps in this copy. Shopware will re-install the apps and newly register at the app servers using the new domain. A new shop identifier will be generated."
+          "description": "This is typically the right option if you have made a copy of your shop (e.g. a staging or testing environment of a production shop) and you do want to use the apps in this copy. Shopware will re-install the apps and newly register at the app servers using the new shop identifier.",
+          "name": "Generate a new shop identifier"
         },
         "uninstall-apps": {
           "name": "Uninstall apps",
           "description": "This is typically the right option if you have made a copy of your shop (e.g. a staging or testing environment of a production shop) and you don’t want to use the apps in this copy. Shopware will delete the apps without notifying the app servers. A new shop identifier will be generated."
         },
-        "title": "Domain change detected",
+        "title": "Shop identifier change suggested",
         "oldLabel": "Old domain: ",
         "newLabel": "New domain: ",
-        "explanationHeader": "We have noticed a change in your shop domain.",
+        "explanationHeader": "We have detected changes in your system and environment that suggest a change of your shop's identifier. This identifier is used to register your shop at app servers and must be unique for each shop.",
         "explanation": "Installed apps are still connected with the old domain and won't work with the new domain. There are three options from here to proceed.",
         "confirmation": "Confirm",
         "success": "Domain changed.",

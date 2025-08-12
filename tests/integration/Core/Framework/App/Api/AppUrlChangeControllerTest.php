@@ -3,11 +3,11 @@
 namespace Shopware\Tests\Integration\Core\Framework\App\Api;
 
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\App\AppUrlChangeResolver\Resolver;
-use Shopware\Core\Framework\App\AppUrlChangeResolver\UninstallAppsStrategy;
 use Shopware\Core\Framework\App\ShopId\Fingerprint\AppUrl;
 use Shopware\Core\Framework\App\ShopId\ShopId;
 use Shopware\Core\Framework\App\ShopId\ShopIdProvider;
+use Shopware\Core\Framework\App\ShopIdChangeResolver\Resolver;
+use Shopware\Core\Framework\App\ShopIdChangeResolver\UninstallAppsStrategy;
 use Shopware\Core\Framework\Test\TestCaseBase\AdminApiTestBehaviour;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;

@@ -56,7 +56,7 @@ class FingerprintGeneratorTest extends TestCase
             new BazFingerprint(),
         ]);
 
-        static::assertEquals($result, $fingerprintGenerator->compare($fingerprints));
+        static::assertEquals($result, $fingerprintGenerator->matchFingerprints($fingerprints));
     }
 
     public static function fingerprintsForComparison(): \Generator

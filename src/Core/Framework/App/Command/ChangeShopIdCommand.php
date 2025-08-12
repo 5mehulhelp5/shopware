@@ -3,7 +3,7 @@
 namespace Shopware\Core\Framework\App\Command;
 
 use Shopware\Core\Framework\Adapter\Console\ShopwareStyle;
-use Shopware\Core\Framework\App\AppUrlChangeResolver\Resolver;
+use Shopware\Core\Framework\App\ShopIdChangeResolver\Resolver;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Log\Package;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -13,16 +13,19 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * @internal only for use by the app-system
+ * @internal
+ *
+ * @deprecated tag:v6.8.0 - The command's name will change to `app:shop-id:change`
  */
 #[AsCommand(
     name: 'app:url-change:resolve',
-    description: 'Resolves app url changes',
+    description: 'Change the shop ID by choosing a resolution strategy',
+    aliases: ['app:shop-id:change'],
 )]
 #[Package('framework')]
-class ResolveAppUrlChangeCommand extends Command
+class ChangeShopIdCommand extends Command
 {
-    public function __construct(private readonly Resolver $appUrlChangeResolver)
+    public function __construct(private readonly Resolver $shopIdChangeResolver)
     {
         parent::__construct();
     }
@@ -36,7 +39,7 @@ class ResolveAppUrlChangeCommand extends Command
     {
         $io = new ShopwareStyle($input, $output);
 
-        $availableStrategies = $this->appUrlChangeResolver->getAvailableStrategies();
+        $availableStrategies = $this->shopIdChangeResolver->getAvailableStrategies();
         $strategy = $input->getArgument('strategy');
 
         if ($strategy === null || !\array_key_exists($strategy, $availableStrategies)) {
@@ -45,12 +48,12 @@ class ResolveAppUrlChangeCommand extends Command
             }
 
             $strategy = $io->choice(
-                'Choose what strategy should be applied, to resolve the app url change?',
+                'Choose what strategy should be applied, to resolve the shop ID change?',
                 $availableStrategies
             );
         }
 
-        $this->appUrlChangeResolver->resolve($strategy, Context::createCLIContext());
+        $this->shopIdChangeResolver->resolve($strategy, Context::createCLIContext());
 
         $io->success('Strategy "' . $strategy . '" was applied successfully');
 

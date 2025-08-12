@@ -31,7 +31,7 @@ class FingerprintGenerator
     /**
      * @param array<string, string> $fingerprints
      */
-    public function compare(array $fingerprints): FingerprintComparisonResult
+    public function matchFingerprints(array $fingerprints): FingerprintComparisonResult
     {
         $matchingFingerprints = [];
         $mismatchingFingerprints = [];
@@ -41,15 +41,16 @@ class FingerprintGenerator
             $expectedStamp = $fingerprint->getStamp();
 
             if ($storedStamp === $expectedStamp) {
-                $matchingFingerprints[$fingerprint->getIdentifier()] = new FingerprintMatch(
+                $matchingFingerprints[/*$fingerprint->getIdentifier()*/] = new FingerprintMatch(
                     $fingerprint->getIdentifier(),
                     $fingerprint->getStamp(),
+                    $fingerprint->getScore()
                 );
 
                 continue;
             }
 
-            $mismatchingFingerprints[$fingerprint->getIdentifier()] = new FingerprintMismatch(
+            $mismatchingFingerprints[/*$fingerprint->getIdentifier()*/] = new FingerprintMismatch(
                 $fingerprint->getIdentifier(),
                 $storedStamp,
                 $expectedStamp,

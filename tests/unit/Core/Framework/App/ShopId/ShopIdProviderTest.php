@@ -6,7 +6,7 @@ use Doctrine\DBAL\Connection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Framework\App\Exception\AppUrlChangeDetectedException;
+use Shopware\Core\Framework\App\Exception\ShopIdChangeSuggestedException;
 use Shopware\Core\Framework\App\ShopId\Fingerprint\AppUrl;
 use Shopware\Core\Framework\App\ShopId\FingerprintComparisonResult;
 use Shopware\Core\Framework\App\ShopId\FingerprintGenerator;
@@ -134,7 +134,7 @@ class ShopIdProviderTest extends TestCase
         static::assertSame($shopIdV1Config['value'], $upgradedShopId);
     }
 
-    public function testThrowsIfAppUrlHasChangedAndHasAppsRegisteredAtAppServers(): void
+    public function testThrowsIfFingerprintsHaveChangedAndHasAppsRegisteredAtAppServers(): void
     {
         $shopId = ShopId::v2('1234567890');
 
@@ -150,7 +150,7 @@ class ShopIdProviderTest extends TestCase
             ->willReturn(1);
 
         $fingerprintGenerator = $this->createMock(FingerprintGenerator::class);
-        $fingerprintGenerator->method('compare')
+        $fingerprintGenerator->method('matchFingerprints')
             ->willReturn(new FingerprintComparisonResult(
                 [],
                 [
@@ -171,11 +171,11 @@ class ShopIdProviderTest extends TestCase
             $fingerprintGenerator,
         );
 
-        static::expectException(AppUrlChangeDetectedException::class);
+        static::expectException(ShopIdChangeSuggestedException::class);
         $provider->getShopId();
     }
 
-    public function testUpdatesShopIdIfAppUrlHasChangedButHasNoAppsRegisteredAtAppServers(): void
+    public function testUpdatesShopIdIfFingerprintsHaveChangedButHasNoAppsRegisteredAtAppServers(): void
     {
         $shopId = ShopId::v2('1234567890', [
             AppUrl::IDENTIFIER => 'https://old.url',
@@ -194,7 +194,7 @@ class ShopIdProviderTest extends TestCase
 
         $fingerprintGenerator = $this->createMock(FingerprintGenerator::class);
         $fingerprintGenerator->expects($this->once())
-            ->method('compare')
+            ->method('matchFingerprints')
             ->willReturn(new FingerprintComparisonResult(
                 [],
                 [
