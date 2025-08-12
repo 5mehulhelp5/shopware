@@ -351,8 +351,49 @@ async function createCategoryApi({ apiBaseUrl, token, payload, dryRun = false, l
 // CSV helpers
 // ------------------------------
 function csvHeaders() {
-  // match the headers you provided
-  return ['id','parent_id','active','type','visible','name','external_link','description','meta_title','meta_description'];
+  // match the headers you provided + add mid category info
+  return ['id','parent_id','active','type','visible','name','external_link','description','meta_title','meta_description','mid_category_id','mid_category_name'];
+}
+
+/**
+ * Load and index mid-categories for reference
+ */
+async function loadMidCategories(midCsvPath) {
+  const midCategories = new Map();
+  
+  if (!fs.existsSync(midCsvPath)) {
+    console.warn(`Mid categories CSV not found: ${midCsvPath}`);
+    return midCategories;
+  }
+
+  return new Promise((resolve, reject) => {
+    const parser = fs.createReadStream(midCsvPath).pipe(parse({
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }));
+
+    parser.on('data', (record) => {
+      const midId = (record.id || '').trim();
+      const midName = (record.name || '').trim();
+      if (midId && midName) {
+        midCategories.set(midId, {
+          id: midId,
+          name: midName,
+          parent_id: record.parent_id,
+          type: record.type,
+          active: record.active,
+          visible: record.visible
+        });
+      }
+    });
+
+    parser.on('error', reject);
+    parser.on('end', () => {
+      console.log(`Loaded ${midCategories.size} mid-categories from ${midCsvPath}`);
+      resolve(midCategories);
+    });
+  });
 }
 
 function rowToCsvLine(row, delimiter = ',') {
@@ -394,7 +435,8 @@ async function processParentRecord({
   dryRun = false,
   logger = null,
   metrics = null,
-  resumeState = null
+  resumeState = null,
+  midCategories = null // Add mid-categories map for reference
 }) {
   // Check if already processed (resume capability)
   if (resumeState && resumeState.isProcessed(parentRecord.id)) {
@@ -414,7 +456,7 @@ async function processParentRecord({
     // queue holds objects: { parentId, parentName, level }
     let currentLevelNodes = [{ parentId: parentRecord.id, parentName: parentRecord.name, level: 1 }];
 
-    for (let lvl = 1; lvl <= depth; lvl++) {
+    for (let lvl = 0; lvl <= depth; lvl++) {
       // lvl indicates: we will create nodes at level = lvl + 1 relative to original first-level
       const nextLevelNodes = [];
 
@@ -427,8 +469,9 @@ async function processParentRecord({
         for (let b = 0; b < branching; b++) {
           tasks.push(limit(async () => {
             const newId = uuidHex();
-            // Build a readable name: "ParentName > L{lvl+1}-{b}-{timestamp}"
-            const newName = `${node.parentName} > L${lvl+1}-${b+1}-${timestamp}`;
+            // Build a shorter readable name to avoid 255 char limit: "L{lvl+1}-{b}-{short_timestamp}"
+            const shortTimestamp = timestamp.slice(-8); // Use last 8 chars of timestamp
+            const newName = `L${lvl+1}-${b+1}-${shortTimestamp}`;
             const payload = {
               id: newId,
               parentId: node.parentId,      // use parentId from node (initially the sub CSV id)
@@ -436,9 +479,9 @@ async function processParentRecord({
               type: 'page',
               active: true,
               visible: true,
-              description: `Auto-generated child of ${node.parentName} (level ${lvl+1})`,
+              description: `Auto-generated child of "${node.parentName}" (level ${lvl+1})`,
               metaTitle: `Meta ${newName}`,
-              metaDescription: `Meta desc for ${newName}`,
+              metaDescription: `Meta desc for ${newName} under ${node.parentName}`,
               // externalLink intentionally omitted or could be added
             };
 
@@ -466,6 +509,17 @@ async function processParentRecord({
 
             // Write to outStream row (skip in dry-run mode for cleaner output)
             if (!dryRun) {
+              // Find mid-category information based on parentRecord's parent_id
+              let midCategoryId = '';
+              let midCategoryName = '';
+              if (midCategories && parentRecord.parent_id) {
+                const midCategory = midCategories.get(parentRecord.parent_id);
+                if (midCategory) {
+                  midCategoryId = midCategory.id;
+                  midCategoryName = midCategory.name;
+                }
+              }
+
               const outRow = {
                 id: createdId,
                 parent_id: node.parentId,
@@ -477,6 +531,8 @@ async function processParentRecord({
                 description: payload.description,
                 meta_title: payload.metaTitle,
                 meta_description: payload.metaDescription,
+                mid_category_id: midCategoryId,
+                mid_category_name: midCategoryName,
               };
               outStream.write(rowToCsvLine(outRow, delimiter));
             }
@@ -733,6 +789,20 @@ async function main() {
 
   logger.info(`Starting to process categories from ${subCsvPath}...`);
 
+  // Load mid-categories for relationship mapping
+  let midCategories = null;
+  try {
+    const midCsvPath = path.join(path.dirname(subCsvPath), 'mid_categories.csv');
+    if (fs.existsSync(midCsvPath)) {
+      midCategories = await loadMidCategories(midCsvPath);
+      logger.info(`Loaded ${midCategories.size} mid-categories from ${midCsvPath}`);
+    } else {
+      logger.warn(`Mid-categories file not found: ${midCsvPath}. Relationship mapping will be unavailable.`);
+    }
+  } catch (error) {
+    logger.warn('Failed to load mid-categories', { error: error.message });
+  }
+
   // Process records as they come from the stream
   let recordCount = 0;
   for await (const record of parser) {
@@ -759,7 +829,7 @@ async function main() {
     await limitParents(async () => {
       try {
         await processParentRecord({
-          parentRecord: { id: parentId, name: parentName },
+          parentRecord: { id: parentId, name: parentName, parent_id: (record.parent_id || '').trim() },
           apiBaseUrl,
           getToken,
           depth,
@@ -771,7 +841,8 @@ async function main() {
           dryRun,
           logger,
           metrics,
-          resumeState
+          resumeState,
+          midCategories
         });
         
         processedCount++;
