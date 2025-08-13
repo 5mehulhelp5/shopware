@@ -36,7 +36,7 @@ class AddressValidationFactory implements DataValidationFactoryInterface
         $definition = new DataValidationDefinition('address.update');
 
         $this->buildCommonValidation($definition, $context)
-            ->add('id', new NotBlank(), new EntityExists(['context' => $context->getContext(), 'entity' => 'customer_address']));
+            ->add('id', new NotBlank(), new EntityExists(entity: 'customer_address', context: $context->getContext()));
 
         return $definition;
     }

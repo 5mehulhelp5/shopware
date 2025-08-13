@@ -73,8 +73,8 @@ class DateRangeRule extends Rule
     public function getConstraints(): array
     {
         return [
-            'fromDate' => [new NotBlank(), new DateTimeConstraint(['format' => \DateTime::ATOM])],
-            'toDate' => [new NotBlank(), new DateTimeConstraint(['format' => \DateTime::ATOM])],
+            'fromDate' => [new NotBlank(), new DateTimeConstraint(format: \DateTime::ATOM)],
+            'toDate' => [new NotBlank(), new DateTimeConstraint(format: \DateTime::ATOM)],
             'useTime' => [new NotNull(), new Type('bool')],
         ];
     }
