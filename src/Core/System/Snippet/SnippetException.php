@@ -2,6 +2,7 @@
 
 namespace Shopware\Core\System\Snippet;
 
+use GuzzleHttp\Psr7\Uri;
 use Shopware\Core\Framework\HttpException;
 use Shopware\Core\Framework\Log\Package;
 use Symfony\Component\HttpFoundation\Response;
@@ -36,6 +37,8 @@ class SnippetException extends HttpException
 
     final public const SNIPPET_TRANSLATION_CONFIGURATION_FILE_DOES_NOT_EXIST = 'SYSTEM__TRANSLATION_CONFIGURATION_FILE_DOES_NOT_EXISTS';
 
+    final public const SNIPPET_TRANSLATION_METADATA_WRITE_FAILED = 'SYSTEM__TRANSLATION_METADATA_WRITE_FAILED';
+
     final public const SNIPPET_TRANSLATION_CONFIGURATION_FILE_IS_EMPTY = 'SYSTEM__TRANSLATION_CONFIGURATION_FILE_DOES_IS_EMPTY';
 
     final public const SNIPPET_CONFIGURED_LOCALE_DOES_NOT_EXIST = 'SYSTEM__PROVIDED_LOCALE_DOES_NOT_EXIST';
@@ -43,6 +46,8 @@ class SnippetException extends HttpException
     final public const SNIPPET_CONFIGURED_LANGUAGE_DOES_NOT_EXIST = 'SYSTEM__LANGUAGE_DOES_NOT_EXISTS';
 
     final public const SNIPPET_TRANSLATION_CONFIGURATION_INVALID_REPOSITORY_URL = 'SYSTEM__SNIPPET_TRANSLATION_CONFIGURATION_INVALID_REPOSITORY_URL';
+
+    final public const SNIPPET_METADATA_FILE_ALREADY_EXISTS = 'SYSTEM__METADATA_FILE_ALREADY_EXISTS';
 
     public static function invalidFilterName(): self
     {
@@ -169,6 +174,20 @@ class SnippetException extends HttpException
         );
     }
 
+    public static function translationMetadataWriteFailed(Uri $uri, ?\Throwable $previous = null): self
+    {
+        return new self(
+            Response::HTTP_INTERNAL_SERVER_ERROR,
+            self::SNIPPET_TRANSLATION_METADATA_WRITE_FAILED,
+            'Failed to fetch translation metadata from "{{ uri }}": {{ error }}',
+            [
+                'uri' => (string) $uri,
+                'error' => $previous?->getMessage() ?? 'Unknown error',
+            ],
+            $previous
+        );
+    }
+
     public static function translationConfigurationFileIsEmpty(string $file): self
     {
         return new self(
@@ -189,6 +208,18 @@ class SnippetException extends HttpException
             'The configured locale "{{ locale }}" does not exist.',
             [
                 'locale' => $locale,
+            ]
+        );
+    }
+
+    public static function metadataFileAlreadyExists(string $path): self
+    {
+        return new self(
+            Response::HTTP_BAD_REQUEST,
+            self::SNIPPET_METADATA_FILE_ALREADY_EXISTS,
+            'The metadata file already exists: "{{ path }}".',
+            [
+                'path' => $path,
             ]
         );
     }

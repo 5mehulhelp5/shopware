@@ -5,6 +5,7 @@ namespace Shopware\Core\System\Snippet\Command;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\System\Snippet\Service\TranslationLoader;
+use Shopware\Core\System\Snippet\Service\TranslationMetadataLoader;
 use Shopware\Core\System\Snippet\SnippetException;
 use Shopware\Core\System\Snippet\Struct\TranslationConfig;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -13,6 +14,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * @internal
@@ -27,6 +29,7 @@ class InstallTranslationCommand extends Command
     public function __construct(
         private readonly TranslationLoader $translationLoader,
         private readonly TranslationConfig $config,
+        private readonly TranslationMetadataLoader $metadataLoader,
     ) {
         parent::__construct();
     }
@@ -39,6 +42,11 @@ class InstallTranslationCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $metadataResult = $this->createMetadataFile($output);
+        if ($metadataResult !== self::SUCCESS) {
+            return $metadataResult;
+        }
+
         $locales = $this->getLocales($input);
         $progressBar = $this->createProgressBar($output, \count($locales));
         $context = Context::createCLIContext();
@@ -111,5 +119,24 @@ class InstallTranslationCommand extends Command
         $progressBar->setFormat('install-translations-format');
 
         return $progressBar;
+    }
+
+    private function createMetadataFile(OutputInterface $output): int
+    {
+        $output->writeln('Load and write translation metadata...');
+
+        try {
+            $this->metadataLoader->load();
+            $output->writeln('Translation metadata loaded successfully.');
+        } catch (SnippetException $exception) {
+            if ($exception->getStatusCode() !== Response::HTTP_BAD_REQUEST) {
+                $output->writeln('<error>' . $exception->getMessage() . '</error>');
+                return self::FAILURE;
+            }
+
+            $output->writeln('Translation metadata already exists, skipping download.');
+        }
+
+        return self::SUCCESS;
     }
 }
