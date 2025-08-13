@@ -19,8 +19,6 @@ class SlotConfigFieldSerializer extends JsonFieldSerializer
         return [
             new All(
                 constraints: new Collection(
-                    allowExtraFields: false,
-                    allowMissingFields: false,
                     fields: [
                         'source' => [
                             new Choice(
@@ -34,7 +32,9 @@ class SlotConfigFieldSerializer extends JsonFieldSerializer
                             new NotBlank(),
                         ],
                         'value' => [],
-                    ]
+                    ],
+                    allowExtraFields: false,
+                    allowMissingFields: false
                 ),
             ),
         ];

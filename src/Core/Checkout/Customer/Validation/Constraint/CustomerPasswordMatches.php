@@ -5,8 +5,8 @@ namespace Shopware\Core\Checkout\Customer\Validation\Constraint;
 use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
-use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 #[Package('checkout')]
@@ -29,6 +29,7 @@ class CustomerPasswordMatches extends Constraint
 
     /**
      * @param ?array{salesChannelContext: SalesChannelContext} $options
+     *
      * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $salesChannelContext instead
      *
      * @internal
@@ -36,14 +37,16 @@ class CustomerPasswordMatches extends Constraint
     #[HasNamedArguments]
     public function __construct(?array $options = null, ?SalesChannelContext $salesChannelContext = null)
     {
-        if ($salesChannelContext === null) {
-            if ($options === null) {
-                Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
+        if (empty($options) || Feature::isActive('v6.8.0.0')) {
+            if ($salesChannelContext === null) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
             }
 
-            $options ??= [];
+            parent::__construct();
 
-            if (!Feature::isActive('v6.8.0.0') && isset($options['context'])) {
+            $this->salesChannelContext = $salesChannelContext;
+        } else {
+            if (isset($options['context'])) {
                 $options['salesChannelContext'] = $options['context'];
             }
 
@@ -51,19 +54,7 @@ class CustomerPasswordMatches extends Constraint
                 throw CustomerException::missingOption('salesChannelContext', self::class);
             }
 
-            if (!Feature::isActive('v6.8.0.0')) {
-                $options['context'] = $options['salesChannelContext'];
-            }
-        }
-
-        parent::__construct($options ?? []);
-        
-        if (Feature::isActive('v6.8.0.0')) {
-            if ($salesChannelContext === null) {
-                throw CustomerException::missingOption('salesChannelContext', self::class);
-            }
-            
-            $this->salesChannelContext = $salesChannelContext;
+            parent::__construct($options);
         }
     }
 

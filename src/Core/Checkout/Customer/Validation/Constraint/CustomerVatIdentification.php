@@ -25,38 +25,36 @@ class CustomerVatIdentification extends Constraint
 
     /**
      * @param ?array{countryId: string, shouldCheck?: bool} $options
+     *
      * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $countryId and $shouldCheck instead
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $countryId parameter will be required and natively typed as string
      *
      * @internal
      */
     #[HasNamedArguments]
     public function __construct(?array $options = null, ?string $countryId = null, ?bool $shouldCheck = null)
     {
-        if ($countryId === null) {
-            if ($options === null) {
-                Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
-            }
-
-            $options ??= [];
-
-            if (!\is_string($options['countryId'] ?? null)) {
-                throw CustomerException::missingOption('countryId', self::class);
-            }
-
-            if (isset($options['shouldCheck']) && !\is_bool($options['shouldCheck'])) {
-                throw CustomerException::invalidOption('shouldCheck', 'bool', self::class);
-            }
-        }
-
-        parent::__construct($options ?? []);
-        
-        if (Feature::isActive('v6.8.0.0')) {
+        if (empty($options) || Feature::isActive('v6.8.0.0')) {
             if ($countryId === null) {
                 throw CustomerException::missingOption('countryId', self::class);
             }
-            
+
+            parent::__construct();
+
             $this->countryId = $countryId;
             $this->shouldCheck = $shouldCheck ?? false;
+        } else {
+            if ($countryId === null) {
+                if (!\is_string($options['countryId'] ?? null)) {
+                    throw CustomerException::missingOption('countryId', self::class);
+                }
+
+                if (isset($options['shouldCheck']) && !\is_bool($options['shouldCheck'])) {
+                    throw CustomerException::invalidOption('shouldCheck', 'bool', self::class);
+                }
+            }
+
+            parent::__construct($options);
         }
     }
 

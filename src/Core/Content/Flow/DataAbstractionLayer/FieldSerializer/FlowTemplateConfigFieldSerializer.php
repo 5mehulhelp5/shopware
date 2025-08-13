@@ -12,6 +12,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Write\WriteParameterBag;
 use Shopware\Core\Framework\Log\Package;
 use Shopware\Core\Framework\Util\Json;
 use Shopware\Core\Framework\Validation\Constraint\Uuid;
+use Symfony\Component\Validator\Constraints\All;
 use Symfony\Component\Validator\Constraints\Collection;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Optional;
@@ -65,17 +66,13 @@ class FlowTemplateConfigFieldSerializer extends JsonFieldSerializer
     {
         return [
             new Collection(
-                allowExtraFields: true,
-                allowMissingFields: false,
                 fields: [
                     'eventName' => [new NotBlank(), new Type('string')],
                     'description' => [new Type('string')],
                     'sequences' => [
-                        [
+                        new All(constraints: [
                             new Optional(
                                 new Collection(
-                                    allowExtraFields: true,
-                                    allowMissingFields: false,
                                     fields: [
                                         'id' => [new NotBlank(), new Uuid()],
                                         'actionName' => [new NotBlank(), new Type('string')],
@@ -85,12 +82,16 @@ class FlowTemplateConfigFieldSerializer extends JsonFieldSerializer
                                         'trueCase' => [new Type('boolean')],
                                         'displayGroup' => [new Type('numeric')],
                                         'config' => [new Type('array')],
-                                    ]
+                                    ],
+                                    allowExtraFields: true,
+                                    allowMissingFields: false
                                 )
                             ),
-                        ],
+                        ]),
                     ],
-                ]
+                ],
+                allowExtraFields: true,
+                allowMissingFields: false
             ),
         ];
     }

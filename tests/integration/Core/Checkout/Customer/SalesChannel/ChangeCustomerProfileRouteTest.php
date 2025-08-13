@@ -381,6 +381,9 @@ class ChangeCustomerProfileRouteTest extends TestCase
         $response = json_decode((string) $this->browser->getResponse()->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 
         if (!$shouldBeValid) {
+            if (!\array_key_exists('errors', $response)) {
+                dd($response, $changeData);
+            }
             static::assertArrayHasKey('errors', $response);
 
             $sources = array_column(array_column($response['errors'], 'source'), 'pointer');

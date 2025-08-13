@@ -30,15 +30,32 @@ class EntityExists extends Constraint
     protected string $primaryProperty = 'id';
 
     /**
-     * @param array{entity: string, context: Context, criteria?: Criteria, primaryProperty?: string} $options
+     * @param array{entity: string, context: Context, criteria?: Criteria, primaryProperty?: string}|null $options
+     *
      * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use named parameters instead
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $entity and $context parameter will be required
      *
      * @internal
      */
     #[HasNamedArguments]
-    public function __construct(array $options = [], ?string $entity = null, ?Context $context = null, ?Criteria $criteria = null, ?string $primaryProperty = null)
+    public function __construct(?array $options = null, ?string $entity = null, ?Context $context = null, ?Criteria $criteria = null, ?string $primaryProperty = null)
     {
-        if ($entity === null && $context === null) {
+        if (empty($options) || Feature::isActive('v6.8.0.0')) {
+            if ($entity === null) {
+                throw FrameworkException::missingOptions(\sprintf('Option "entity" must be given for constraint %s', self::class));
+            }
+
+            if ($context === null) {
+                throw FrameworkException::missingOptions(\sprintf('Option "context" must be given for constraint %s', self::class));
+            }
+
+            parent::__construct();
+
+            $this->entity = $entity;
+            $this->context = $context;
+            $this->criteria = $criteria ?? new Criteria();
+            $this->primaryProperty = $primaryProperty ?? 'id';
+        } else {
             $options = array_merge(
                 ['criteria' => new Criteria()],
                 $options
@@ -59,17 +76,8 @@ class EntityExists extends Constraint
             if (isset($options['primaryProperty']) && !\is_string($options['primaryProperty'])) {
                 throw FrameworkException::invalidOptions(\sprintf('Option "primaryProperty" must be a string for constraint %s', self::class));
             }
-        }
 
-        parent::__construct($options);
-        
-        if (Feature::isActive('v6.8.0.0')) {
-            if ($entity !== null && $context !== null) {
-                $this->entity = $entity;
-                $this->context = $context;
-                $this->criteria = $criteria ?? new Criteria();
-                $this->primaryProperty = $primaryProperty ?? 'id';
-            }
+            parent::__construct($options);
         }
     }
 

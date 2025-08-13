@@ -37,7 +37,9 @@ class EntityExistsValidatorTest extends TestCase
         $context = Context::createDefaultContext();
 
         $constraint = new EntityExists(
-            ['context' => $context, 'entity' => LocaleDefinition::ENTITY_NAME, 'criteria' => $criteria]
+            entity: LocaleDefinition::ENTITY_NAME,
+            context: $context,
+            criteria: $criteria
         );
 
         $validator->validate(Uuid::randomHex(), [$constraint]);
@@ -63,8 +65,10 @@ class EntityExistsValidatorTest extends TestCase
         );
 
         $validator = $this->getValidator();
+
         $constraint = new EntityExists(
-            ['context' => $context, 'entity' => LocaleDefinition::ENTITY_NAME]
+            entity: LocaleDefinition::ENTITY_NAME,
+            context: $context,
         );
 
         $violations = $validator->validate($id1, $constraint);
@@ -99,13 +103,12 @@ class EntityExistsValidatorTest extends TestCase
         $validator = $this->getValidator();
 
         $constraint = new All(
-            [
-                'constraints' => [
-                    new EntityExists(
-                        ['context' => $context, 'entity' => LocaleDefinition::ENTITY_NAME]
-                    ),
-                ],
-            ]
+            constraints: [
+                new EntityExists(
+                    entity: LocaleDefinition::ENTITY_NAME,
+                    context: $context,
+                ),
+            ],
         );
 
         $violations = $validator->validate([$id1, $id2], [$constraint]);

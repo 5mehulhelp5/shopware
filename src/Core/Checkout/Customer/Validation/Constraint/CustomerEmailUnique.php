@@ -6,8 +6,8 @@ use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
-use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 #[Package('checkout')]
@@ -29,19 +29,29 @@ class CustomerEmailUnique extends Constraint
     protected SalesChannelContext $salesChannelContext;
 
     /**
-     * @param array{salesChannelContext: SalesChannelContext} $options
+     * @param array{salesChannelContext?: SalesChannelContext}|null $options
+     *
      * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $salesChannelContext instead
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $salesChannelContext will be required
      *
      * @internal
      */
     #[HasNamedArguments]
-    public function __construct(array $options = [], ?SalesChannelContext $salesChannelContext = null)
+    public function __construct(?array $options = null, ?SalesChannelContext $salesChannelContext = null)
     {
-        if ($salesChannelContext === null && !($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
-            throw CustomerException::missingOption('salesChannelContext', self::class);
-        }
+        if (empty($options) || Feature::isActive('v6.8.0.0')) {
+            if ($salesChannelContext === null) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
+            }
 
-        if (!Feature::isActive('v6.8.0.0')) {
+            parent::__construct();
+
+            $this->salesChannelContext = $salesChannelContext;
+        } else {
+            if (!($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
+            }
+
             if (!isset($options['context'])) {
                 $options['context'] = $options['salesChannelContext']->getContext();
             }
@@ -49,16 +59,8 @@ class CustomerEmailUnique extends Constraint
             if (!($options['context'] ?? null) instanceof Context) {
                 throw CustomerException::missingOption('context', self::class);
             }
-        }
 
-        parent::__construct($options);
-        
-        if (Feature::isActive('v6.8.0.0')) {
-            if ($salesChannelContext === null) {
-                throw CustomerException::missingOption('salesChannelContext', self::class);
-            }
-            
-            $this->salesChannelContext = $salesChannelContext;
+            parent::__construct($options);
         }
     }
 

@@ -24,7 +24,7 @@ class CustomerPasswordMatchesValidator extends ConstraintValidator
             return;
         }
 
-        $context = $constraint->getContext();
+        $context = $constraint->getSalesChannelContext();
 
         $customer = $context->getCustomer();
 

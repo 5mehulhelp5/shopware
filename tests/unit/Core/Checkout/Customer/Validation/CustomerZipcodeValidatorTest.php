@@ -36,9 +36,7 @@ class CustomerZipcodeValidatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->constraint = new CustomerZipCode([
-            'countryId' => Uuid::randomHex(),
-        ]);
+        $this->constraint = new CustomerZipCode(countryId: Uuid::randomHex());
 
         $this->countryRepository = $this->createMock(EntityRepository::class);
     }

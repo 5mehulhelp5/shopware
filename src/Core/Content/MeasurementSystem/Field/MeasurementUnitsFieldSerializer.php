@@ -70,22 +70,22 @@ class MeasurementUnitsFieldSerializer extends JsonFieldSerializer
             new Type('array'),
             new NotNull(),
             new Collection(
-                allowExtraFields: true,
-                allowMissingFields: false,
                 fields: [
                     'system' => [new NotBlank(), new Type('string')],
                     'units' => [
                         new Type('array'),
                         new Collection(
-                            allowExtraFields: true,
-                            allowMissingFields: false,
                             fields: [
                                 MeasurementUnitTypeEnum::LENGTH->value => [new Type('string'), new NotNull()],
                                 MeasurementUnitTypeEnum::WEIGHT->value => [new Type('string'), new NotNull()],
-                            ]
+                            ],
+                            allowExtraFields: true,
+                            allowMissingFields: false
                         ),
                     ],
-                ]
+                ],
+                allowExtraFields: true,
+                allowMissingFields: false
             ),
         ];
     }
