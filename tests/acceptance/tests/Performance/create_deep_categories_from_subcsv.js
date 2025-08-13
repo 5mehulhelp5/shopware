@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * create_deep_categories_from_subcsv.js
  *
@@ -27,12 +26,12 @@ function cleanEnvVar(value) {
   return value.toString().replace(/^['"]|['"];?$/g, '').trim();
 }
 
-const DEFAULT_CONCURRENCY = 1;          // how many concurrent API calls to make
+const DEFAULT_CONCURRENCY = 2;          // how many concurrent API calls to make
 const DEFAULT_DEPTH = 3;             // how many levels under the first-level (level 2..depth)
 const DEFAULT_BRANCHING = 1;         // how many children per node at each level
 const DEFAULT_RETRIES = 5;             // how many retries for API calls
-const DEFAULT_BACKOFF_MS = 2000;      // initial backoff
-const DEFAULT_API_DELAY_MS = 2000;     // delay between API calls to reduce server load
+const DEFAULT_BACKOFF_MS = 1000;      // initial backoff
+const DEFAULT_API_DELAY_MS = 1000;     // delay between API calls to reduce server load
 
 // Logging levels
 const LOG_LEVELS = {
@@ -1042,66 +1041,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     process.exit(1);
   });
 }
-
-/*
-USAGE EXAMPLES:
-
-Basic Usage:
-1. Simple run with existing CSV:
-   node create_deep_categories_from_subcsv.js --sub-csv=my_categories.csv --token=your_token
-
-2. Create 4 levels deep with 2 children per node:
-   node create_deep_categories_from_subcsv.js --depth=4 --branching=2 --token=your_token
-
-3. Use OAuth client credentials:
-   node create_deep_categories_from_subcsv.js --client-id=your_id --client-secret=your_secret
-
-Advanced Features:
-4. Dry-run mode (test without making API calls):
-   node create_deep_categories_from_subcsv.js --dry-run --token=your_token
-
-5. Resume interrupted runs:
-   node create_deep_categories_from_subcsv.js --resume --token=your_token
-
-6. Enhanced logging with file output:
-   node create_deep_categories_from_subcsv.js --log-level=DEBUG --enable-file-logging --log-file=my_run.log
-
-7. Custom retry strategies:
-   node create_deep_categories_from_subcsv.js --retry-config=retry_config.json --token=your_token
-
-8. Metrics collection:
-   node create_deep_categories_from_subcsv.js --metrics-output=run_metrics.json --token=your_token
-
-9. Full production run with all features:
-   node create_deep_categories_from_subcsv.js \
-     --sub-csv=categories.csv \
-     --depth=3 \
-     --branching=2 \
-     --concurrency=4 \
-     --log-level=INFO \
-     --enable-file-logging \
-     --resume \
-     --metrics-output=metrics.json \
-     --token=your_token
-
-Environment variables:
-   export SHOPWARE_TOKEN=your_token
-   export SHOPWARE_CLIENT_ID=your_id
-   export SHOPWARE_CLIENT_SECRET=your_secret
-
-Retry Configuration File (retry_config.json):
-{
-  "/api/oauth/token": {
-    "retries": 3,
-    "backoffMs": 200,
-    "maxDelay": 5000
-  },
-  "/api/category": {
-    "retries": 5,
-    "backoffMs": 1000,
-    "maxDelay": 30000
-  }
-}
-
-Log Levels: ERROR, WARN, INFO, DEBUG
-*/
