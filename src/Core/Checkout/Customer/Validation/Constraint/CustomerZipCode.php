@@ -28,34 +28,42 @@ class CustomerZipCode extends Constraint
 
     /**
      * @param ?array{countryId?: ?string, caseSensitiveCheck?: bool} $options
-     *
-     * @deprecated tag:v6.8.0 - Parameter $options will be required and natively typed as array
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $countryId and $caseSensitiveCheck instead
      */
-    public function __construct($options = null)
+    public function __construct(?array $options = null, ?string $countryId = null, ?bool $caseSensitiveCheck = null)
     {
+        if ($countryId === null && $caseSensitiveCheck === null) {
+            if (Feature::isActive('v6.8.0.0')) {
+                if ($options === null) {
+                    Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
+                }
+            } else {
+                if ($options !== null && !\is_array($options)) {
+                    $options = [
+                        'countryId' => $options,
+                    ];
+                }
+            }
+
+            $options ??= [];
+
+            if (\array_key_exists('countryId', $options) && ($options['countryId'] !== null && !\is_string($options['countryId']))) {
+                throw CustomerException::missingOption('countryId', self::class);
+            }
+
+            if (isset($options['caseSensitiveCheck']) && !\is_bool($options['caseSensitiveCheck'])) {
+                throw CustomerException::invalidOption('caseSensitiveCheck', 'bool', self::class);
+            }
+        }
+
+        parent::__construct($options ?? []);
+        
         if (Feature::isActive('v6.8.0.0')) {
-            if ($options === null) {
-                Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
-            }
-        } else {
-            if ($options !== null && !\is_array($options)) {
-                $options = [
-                    'countryId' => $options,
-                ];
+            if ($countryId !== null || $caseSensitiveCheck !== null) {
+                $this->countryId = $countryId;
+                $this->caseSensitiveCheck = $caseSensitiveCheck ?? true;
             }
         }
-
-        $options ??= [];
-
-        if (\array_key_exists('countryId', $options) && ($options['countryId'] !== null && !\is_string($options['countryId']))) {
-            throw CustomerException::missingOption('countryId', self::class);
-        }
-
-        if (isset($options['caseSensitiveCheck']) && !\is_bool($options['caseSensitiveCheck'])) {
-            throw CustomerException::invalidOption('caseSensitiveCheck', 'bool', self::class);
-        }
-
-        parent::__construct($options);
     }
 
     public function getMessage(): string

@@ -28,32 +28,41 @@ class CustomerPasswordMatches extends Constraint
 
     /**
      * @param ?array{salesChannelContext: SalesChannelContext} $options
-     *
-     * @deprecated tag:v6.8.0 - Parameter $options will be required and natively typed as array
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $salesChannelContext instead
      *
      * @internal
      */
-    public function __construct($options = null)
+    public function __construct(?array $options = null, ?SalesChannelContext $salesChannelContext = null)
     {
-        if ($options === null) {
-            Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
+        if ($salesChannelContext === null) {
+            if ($options === null) {
+                Feature::triggerDeprecationOrThrow('v6.8.0.0', 'The parameter $options will be required and natively typed as array');
+            }
+
+            $options ??= [];
+
+            if (!Feature::isActive('v6.8.0.0') && isset($options['context'])) {
+                $options['salesChannelContext'] = $options['context'];
+            }
+
+            if (!($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
+            }
+
+            if (!Feature::isActive('v6.8.0.0')) {
+                $options['context'] = $options['salesChannelContext'];
+            }
         }
 
-        $options ??= [];
-
-        if (!Feature::isActive('v6.8.0.0') && isset($options['context'])) {
-            $options['salesChannelContext'] = $options['context'];
+        parent::__construct($options ?? []);
+        
+        if (Feature::isActive('v6.8.0.0')) {
+            if ($salesChannelContext === null) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
+            }
+            
+            $this->salesChannelContext = $salesChannelContext;
         }
-
-        if (!($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
-            throw CustomerException::missingOption('salesChannelContext', self::class);
-        }
-
-        if (!Feature::isActive('v6.8.0.0')) {
-            $options['context'] = $options['salesChannelContext'];
-        }
-
-        parent::__construct($options);
     }
 
     /**

@@ -29,12 +29,13 @@ class CustomerEmailUnique extends Constraint
 
     /**
      * @param array{salesChannelContext: SalesChannelContext} $options
+     * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $salesChannelContext instead
      *
      * @internal
      */
-    public function __construct(array $options)
+    public function __construct(array $options = [], ?SalesChannelContext $salesChannelContext = null)
     {
-        if (!($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
+        if ($salesChannelContext === null && !($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {
             throw CustomerException::missingOption('salesChannelContext', self::class);
         }
 
@@ -49,6 +50,14 @@ class CustomerEmailUnique extends Constraint
         }
 
         parent::__construct($options);
+        
+        if (Feature::isActive('v6.8.0.0')) {
+            if ($salesChannelContext === null) {
+                throw CustomerException::missingOption('salesChannelContext', self::class);
+            }
+            
+            $this->salesChannelContext = $salesChannelContext;
+        }
     }
 
     /**
