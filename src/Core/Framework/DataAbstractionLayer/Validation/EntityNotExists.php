@@ -7,6 +7,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\FrameworkException;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Validation\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 #[Package('framework')]
@@ -34,6 +35,7 @@ class EntityNotExists extends Constraint
      *
      * @internal
      */
+    #[HasNamedArguments]
     public function __construct(array $options = [], ?string $entity = null, ?Context $context = null, ?Criteria $criteria = null, ?string $primaryProperty = null)
     {
         if ($entity === null && $context === null) {

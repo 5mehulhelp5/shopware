@@ -6,6 +6,7 @@ use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Validation\HasNamedArguments;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Validator\Constraint;
 
@@ -33,6 +34,7 @@ class CustomerEmailUnique extends Constraint
      *
      * @internal
      */
+    #[HasNamedArguments]
     public function __construct(array $options = [], ?SalesChannelContext $salesChannelContext = null)
     {
         if ($salesChannelContext === null && !($options['salesChannelContext'] ?? null) instanceof SalesChannelContext) {

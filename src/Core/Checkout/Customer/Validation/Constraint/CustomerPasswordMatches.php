@@ -5,6 +5,7 @@ namespace Shopware\Core\Checkout\Customer\Validation\Constraint;
 use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Validation\HasNamedArguments;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Validator\Constraint;
 
@@ -32,6 +33,7 @@ class CustomerPasswordMatches extends Constraint
      *
      * @internal
      */
+    #[HasNamedArguments]
     public function __construct(?array $options = null, ?SalesChannelContext $salesChannelContext = null)
     {
         if ($salesChannelContext === null) {

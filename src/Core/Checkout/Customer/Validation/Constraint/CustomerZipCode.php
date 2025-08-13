@@ -5,6 +5,7 @@ namespace Shopware\Core\Checkout\Customer\Validation\Constraint;
 use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Validation\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -30,6 +31,7 @@ class CustomerZipCode extends Constraint
      * @param ?array{countryId?: ?string, caseSensitiveCheck?: bool} $options
      * @deprecated tag:v6.8.0 - reason:new-optional-parameter - $options parameter will be removed, use $countryId and $caseSensitiveCheck instead
      */
+    #[HasNamedArguments]
     public function __construct(?array $options = null, ?string $countryId = null, ?bool $caseSensitiveCheck = null)
     {
         if ($countryId === null && $caseSensitiveCheck === null) {

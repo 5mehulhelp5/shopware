@@ -5,6 +5,7 @@ namespace Shopware\Core\Checkout\Customer\Validation\Constraint;
 use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
+use Shopware\Core\Framework\Validation\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 #[Package('checkout')]
@@ -28,6 +29,7 @@ class CustomerVatIdentification extends Constraint
      *
      * @internal
      */
+    #[HasNamedArguments]
     public function __construct(?array $options = null, ?string $countryId = null, ?bool $shouldCheck = null)
     {
         if ($countryId === null) {
