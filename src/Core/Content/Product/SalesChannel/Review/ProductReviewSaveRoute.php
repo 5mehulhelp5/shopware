@@ -143,12 +143,12 @@ class ProductReviewSaveRoute extends AbstractProductReviewSaveRoute
         } else {
             $criteria->addFilter(new EqualsFilter('productId', $data->get('productId')));
 
-            $definition->add('customerId', new EntityNotExists([
-                'entity' => 'product_review',
-                'context' => $context,
-                'criteria' => $criteria,
-                'primaryProperty' => 'customerId',
-            ]));
+            $definition->add('customerId', new EntityNotExists(
+                entity: 'product_review',
+                context: $context,
+                criteria: $criteria,
+                primaryProperty: 'customerId',
+            ));
         }
 
         $this->validator->validate($data->all(), $definition);

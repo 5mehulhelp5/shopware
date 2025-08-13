@@ -115,14 +115,14 @@ class ContextSwitchRoute extends AbstractContextSwitchRoute
             ->addFilter(new EqualsFilter('shipping_method.salesChannels.id', $salesChannelId));
 
         $definition
-            ->add(self::LANGUAGE_ID, new EntityExists(['entity' => 'language', 'context' => $frameworkContext, 'criteria' => $languageCriteria]))
-            ->add(self::CURRENCY_ID, new EntityExists(['entity' => 'currency', 'context' => $frameworkContext, 'criteria' => $currencyCriteria]))
-            ->add(self::SHIPPING_METHOD_ID, new EntityExists(['entity' => 'shipping_method', 'context' => $frameworkContext, 'criteria' => $shippingMethodCriteria]))
-            ->add(self::PAYMENT_METHOD_ID, new EntityExists(['entity' => 'payment_method', 'context' => $frameworkContext, 'criteria' => $paymentMethodCriteria]))
-            ->add(self::BILLING_ADDRESS_ID, new EntityExists(['entity' => 'customer_address', 'context' => $frameworkContext, 'criteria' => $addressCriteria]))
-            ->add(self::SHIPPING_ADDRESS_ID, new EntityExists(['entity' => 'customer_address', 'context' => $frameworkContext, 'criteria' => $addressCriteria]))
-            ->add(self::COUNTRY_ID, new EntityExists(['entity' => 'country', 'context' => $frameworkContext]))
-            ->add(self::STATE_ID, new EntityExists(['entity' => 'country_state', 'context' => $frameworkContext]))
+            ->add(self::LANGUAGE_ID, new EntityExists(entity: 'language', context: $frameworkContext, criteria: $languageCriteria))
+            ->add(self::CURRENCY_ID, new EntityExists(entity: 'currency', context: $frameworkContext, criteria: $currencyCriteria))
+            ->add(self::SHIPPING_METHOD_ID, new EntityExists(entity: 'shipping_method', context: $frameworkContext, criteria: $shippingMethodCriteria))
+            ->add(self::PAYMENT_METHOD_ID, new EntityExists(entity: 'payment_method', context: $frameworkContext, criteria: $paymentMethodCriteria))
+            ->add(self::BILLING_ADDRESS_ID, new EntityExists(entity: 'customer_address', context: $frameworkContext, criteria: $addressCriteria))
+            ->add(self::SHIPPING_ADDRESS_ID, new EntityExists(entity: 'customer_address', context: $frameworkContext, criteria: $addressCriteria))
+            ->add(self::COUNTRY_ID, new EntityExists(entity: 'country', context: $frameworkContext))
+            ->add(self::STATE_ID, new EntityExists(entity: 'country_state', context: $frameworkContext))
         ;
 
         $event = new SwitchContextEvent($data, $context, $definition, $parameters);

@@ -47,14 +47,14 @@ class AddressValidationFactory implements DataValidationFactoryInterface
         $salesChannelId = $context->getSalesChannelId();
 
         $definition
-            ->add('salutationId', new EntityExists(['entity' => 'salutation', 'context' => $frameworkContext]))
-            ->add('countryId', new EntityExists(['entity' => 'country', 'context' => $frameworkContext]))
-            ->add('countryStateId', new EntityExists(['entity' => 'country_state', 'context' => $frameworkContext]))
+            ->add('salutationId', new EntityExists(entity: 'salutation', context: $frameworkContext))
+            ->add('countryId', new EntityExists(entity: 'country', context: $frameworkContext))
+            ->add('countryStateId', new EntityExists(entity: 'country_state', context: $frameworkContext))
             ->add('firstName', new NotBlank(null, 'VIOLATION::FIRST_NAME_IS_BLANK_ERROR'))
             ->add('lastName', new NotBlank(null, 'VIOLATION::LAST_NAME_IS_BLANK_ERROR'))
             ->add('street', new NotBlank(null, 'VIOLATION::STREET_IS_BLANK_ERROR'))
             ->add('city', new NotBlank(null, 'VIOLATION::CITY_IS_BLANK_ERROR'))
-            ->add('countryId', new NotBlank(null, 'VIOLATION::COUNTRY_IS_BLANK_ERROR'), new EntityExists(['entity' => 'country', 'context' => $frameworkContext]))
+            ->add('countryId', new NotBlank(null, 'VIOLATION::COUNTRY_IS_BLANK_ERROR'), new EntityExists(entity: 'country', context: $frameworkContext))
             ->add('firstName', new Length(max: CustomerAddressDefinition::MAX_LENGTH_FIRST_NAME, exactMessage: 'VIOLATION::FIRST_NAME_IS_TOO_LONG'))
             ->add('lastName', new Length(max: CustomerAddressDefinition::MAX_LENGTH_LAST_NAME, exactMessage: 'VIOLATION::LAST_NAME_IS_TOO_LONG'))
             ->add('title', new Length(max: CustomerAddressDefinition::MAX_LENGTH_TITLE, exactMessage: 'VIOLATION::TITLE_IS_TOO_LONG'))
@@ -76,7 +76,7 @@ class AddressValidationFactory implements DataValidationFactoryInterface
         }
 
         if ($this->systemConfigService->get('core.loginRegistration.showPhoneNumberField', $salesChannelId)) {
-            $definition->add('phoneNumber', new Length(['max' => CustomerAddressDefinition::MAX_LENGTH_PHONE_NUMBER], null, null, null, null, null, 'VIOLATION::PHONE_NUMBER_IS_TOO_LONG'));
+            $definition->add('phoneNumber', new Length(max: CustomerAddressDefinition::MAX_LENGTH_PHONE_NUMBER));
         }
 
         return $definition;
