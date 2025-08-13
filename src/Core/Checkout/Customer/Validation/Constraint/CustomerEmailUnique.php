@@ -6,7 +6,7 @@ use Shopware\Core\Checkout\Customer\CustomerException;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Feature;
 use Shopware\Core\Framework\Log\Package;
-use Shopware\Core\Framework\Validation\HasNamedArguments;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\Validator\Constraint;
 
